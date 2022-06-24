@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>制造执行系统</title>
+    <script src="js/jquery.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/echarts.js"></script>
+    <script src="element-ui/lib/index.js"></script>
+    <link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+    <script src="js/axios-0.18.0.js"></script>
+</head>
+<style>
+
+    body {
+        background-image: url("./img/BP3.png");
+        opacity: 0.9;
+    }
+    /*.roll-dialog .el-dialog__body {*/
+    /*    padding: 3px 30px;*/
+    /*    overflow-y: auto;*/
+    /*    height: calc(90vh - 130px);*/
+    /*}*/
+    /*center class="roll-dialog"*/
+
+    .customWidth{
+        width: 1000px;
+        
+    }
+
+    .header {
+        background-color: #0e539a;
+        padding: 10px 10px 10px 50px;
+        color: white;
+        font-size: 18px;
+        margin: 10px;
+        box-shadow: 0px 4px 4px rgb(0 0 0 / 12%), 0px 1px 2px rgb(0 0 0 / 24%);}
+
+    .el-main {
+        background: #f6f6f6;
+        border: 2px;
+        margin: 10px;
+        box-shadow: 0px 4px 4px rgb(0 0 0 / 12%), 0px 1px 2px rgb(0 0 0 / 24%);
+    }
+
+    .el-row {
+        margin-bottom: 20px;
+
+    }
+
+    .el-col {
+        border-radius: 4px;
+    }
+
+    .bg-purple-dark {
+        background: #99a9bf;
+    }
+
+    .bg-purple {
+        background: #f6f6f6;
+    }
+
+    .bg-purple-light {
+        background: #f6f6f6;
+    }
+
+    .grid-content {
+        border-radius: 4px;
+        min-height: 36px;
+        padding: 10px 10px 10px 10px;
+    }
+
+    .row-bg {
+        padding: 10px 0;
+        background-color: #f9fafc;
+    }
+
+    .el-table--striped .el-table__body tr.el-table__row--striped.current-row td,
+    .el-table__body tr.current-row>td {
+        color: #fff;
+        background-color: #a2a4a7 !important;
+    }
+
+</style>
+
+
+<body>
+<div id="app">
+    <div class="header">
+        <h1 style='margin: 20px 0px 0px 0px;'>制造执行系统</h1>
+        <div style='color:#ffffff;text-align: right;'>
+            你好<br>
+            <span>系统管理员</span>
+        </div>
+</div>
+    <el-container>
+        <div style='margin: 0px 0px 0px 10px;'>
+            <el-button style='background-color:#0e539a;border-color:#0e539a;'
+                       type="primary" icon="el-icon-arrow-left" @click="myReturn">返回主菜单
+            </el-button>
+        </div>
+    </el-container>
+
+    <el-container>
+        <el-main>
+            <el-row style='margin-bottom: 0px;'>
+                <el-col :span="6">
+                    <div class="grid-content bg-purple"></div>
+                </el-col>
+                <el-col :span="12">
+                    <div style='text-align: center;color: #bd2d30;font-size: 30px;'>生产排程系统</div>
+                </el-col>
+                <el-col :span="6">
+                    <div class="grid-content bg-purple"></div>
+                </el-col>
+            </el-row>
+            <!--功能栏-->
+            <el-row>
+                <el-col :span="24">
+                    <div class="grid-content bg-purple"
+                         style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+						  background-color: #ffffff;">
+                        <div style='padding:10px'>
+                            <div style='padding:10px 10px 10px 10px'>
+
+                                <!--生产任务单号-->
+                                <span style='color: #909399;font-weight:bolder;'>生产任务单号：</span>
+                                <el-input placeholder="请输入内容" style='width:220px;margin:0px 10px 10px 0px;'
+                                          v-model="newScheduleRecord.productionNumber">
+
+                                    <!--排程记录-->
+                                    <el-button slot="append" icon="el-icon-search" @click="dialogRecordVisible = true">排程记录</el-button>
+                                </el-input>
+
+                                <!--订单编号-->
+                                <span style='color: #909399;font-weight:bolder;'>订单编号：</span>
+                                <el-input placeholder="可以为空" style='width:90px;margin:0px 10px 10px 0px;'
+                                          v-model="newScheduleRecord.orderNumber"></el-input>
+
+                                <!--客户名称-->
+                                <span style='color: #909399;font-weight:bolder;'>客户名称：</span>
+                                <el-input placeholder="可以为空" style='width:90px;margin:0px 10px 10px 0px;'
+                                          v-model="newScheduleRecord.customerName"></el-input>
+
+                                <!--物料编号-->
+                                <span style='color: #909399;font-weight:bolder;'>物料编号：</span>
+                                <el-input :disabled="true" placeholder="需生产排程的物料"
+                                          style='width:266px;margin:0px 10px 10px 0px;' v-bind:value="newScheduleRecord.partNo">
+                                    <el-button slot="append" icon="el-icon-search" @click="dialogPartVisible = true">
+                                        选择物料
+                                    </el-button>
+                                </el-input>
+
+                                <!--物料名称-->
+                                <span style='color: #909399;font-weight:bolder;'>物料名称：</span>
+                                <el-input :disabled="true" style='width:190px;margin:0px 10px 10px 0px;'
+                                          v-bind:value="newScheduleRecord.partName"></el-input>
+                                </br>
+
+                                <!--需求数量-->
+                                <span style='color: #909399;font-weight:bolder;'>需求数量：</span>
+                                <el-input-number :min="1" :max="1000" v-model="newScheduleRecord.number" :step="100"></el-input-number>
+
+
+                                <el-button @click="resetInput" style="margin-left: 60px">重置输入框</el-button>
+
+                                <el-button type="info" plain @click="dialogEquipmentVisible = true">设备信息查询</el-button>
+
+                                <el-button type="primary" @click="schedule">生产排程计算</el-button>
+
+
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                </el-col>
+            </el-row>
+
+            <!--甘特图-->
+            <el-row>
+                <el-col :span="24">
+                    <div class="grid-content bg-purple"
+                         style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+						  background-color: #ffffff;">
+                        <div style='padding:10px'>
+                            <div style='padding:10px 10px 10px 10px'>
+                                <span style='color: #909399;font-weight:bolder;'>生产排程甘特图：</span>
+                                <div id="main" style="width: 1100px;height:400px;">
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </el-col>
+            </el-row>
+
+            <!--详细表格-->
+            <el-row>
+                <el-col :span="24">
+                    <div class="grid-content bg-purple"
+                         style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+						  background-color: #ffffff;">
+                        <div style='padding:10px'>
+                            <div style='padding:10px 10px 10px 10px'>
+                                <span style='color: #909399;font-weight:bolder'>生产排程表：</span>
+                                <el-table
+                                        :data="tableData"
+                                        border
+                                        style="width: 100%">
+                                    <el-table-column
+                                            label="序号"
+                                            width="100">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="生产任务单号"
+                                            width="120">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="订单编号"
+                                            width="120">
+                                    </el-table-column>
+                                    <!--                                    <el-table-column-->
+                                    <!--                                            label="客户名称"-->
+                                    <!--                                            width="120">-->
+                                    <!--                                    </el-table-column>-->
+                                    <el-table-column
+                                            label="设备编号"
+                                            width="100">
+                                    </el-table-column>
+
+                                    <el-table-column
+                                            label="物料编号"
+                                            width="100">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="物料名称"
+                                            width="100">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="规格型号"
+                                            width="100">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="节拍/s"
+                                            width="100">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="工序名称"
+                                            width="100">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="加工数量">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="计划用时">
+                                    </el-table-column>
+                                    <el-table-column
+                                            label="计划日期">
+                                    </el-table-column>
+
+
+                                </el-table>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </el-col>
+            </el-row>
+
+
+
+        </el-main>
+    </el-container>
+
+
+<!--Part弹出框-->
+    <el-dialog title="生产排程物料选择" :visible.sync="dialogPartVisible">
+        <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange">
+            <el-table-column prop="partno" label="物料编号" width="200"></el-table-column>
+            <el-table-column prop="partname" label="物料名称" width="200"></el-table-column>
+            <el-table-column prop="model" label="规格型号"></el-table-column>
+            <el-table-column prop="ct" label="节拍/s"></el-table-column>
+        </el-table>
+        <span slot="footer" class="dialog-footer">
+    <el-button @click="partCancel">取 消</el-button>
+    <el-button type="primary" @click="partConfirm">确 定</el-button>
+  </span>
+    </el-dialog>
+
+
+    <!--Equipment弹出框-->
+    <el-dialog title="设备信息查询" :visible.sync="dialogEquipmentVisible" >
+        <el-table :data="equipmentDataList"  height="450" >
+            <el-table-column prop="equipmentno" label="设备编号" width="100"></el-table-column>
+            <el-table-column prop="equipmentname" label="设备名称" width="150"></el-table-column>
+            <el-table-column prop="processname" label="工序"></el-table-column>
+            <el-table-column prop="ct" label="节拍/s"></el-table-column>
+            <el-table-column prop="processorder" label="加工次序"></el-table-column>
+            <el-table-column prop="partname" label="所属零件名称"></el-table-column>
+        </el-table>
+        <span slot="footer" class="dialog-footer">
+    <el-button type="info" @click="eHide">隐 藏</el-button>
+  </span>
+    </el-dialog>
+
+
+
+
+    <!--Record弹出框-->
+    <el-dialog title="排程记录" :visible.sync="dialogRecordVisible" custom-class="customWidth">
+        <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChange" height="450">
+            <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
+            <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
+            <el-table-column prop=customerName" label="客户名称"></el-table-column>
+            <el-table-column prop="partNo" label="物料编号" width="150"></el-table-column>
+            <el-table-column prop="partName" label="物料名称" width="160"></el-table-column>
+            <el-table-column prop="number" label="需求数量" width="100"></el-table-column>
+            <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
+        </el-table>
+        <span slot="footer" class="dialog-footer">
+
+            <el-button type="danger" plain @click="deleteRecord">删除</el-button>
+            <el-button @click="recordCancel">取 消</el-button>
+            <el-button type="primary" @click="recordConfirm">确 定</el-button>
+  </span>
+    </el-dialog>
+
+</div>
+
+</body>
+
+
+<script>
+var app = new Vue({
+el: '#app',
+data: {
+    dialogRecordVisible:false,
+    dialogPartVisible: false,
+    dialogEquipmentVisible:false,
+
+
+    recordDataList:[],//排程记录
+    partDataList: [],//选择物料
+    equipmentDataList:[],//设备信息查询
+    tableData:[],//生产排程表
+
+    newScheduleRecord:{
+        productionNumber:'',//生产任务单号
+        orderNumber:'',//订单编号
+        customerName:'',//客户名称
+        partNo:'',//物料编号
+        partName:'',//物料名称
+        number: 100, //需求数量
+        createTime:'',//创建时间
+    }
+
+
+},
+    //钩子函数，VUE对象初始化完成后自动执行
+    created() {
+        this.dateFormat();
+        this.getRecordAll();
+        this.getEquipmentAll();
+        this.getPartAll();
+
+    },
+    mounted(){
+        var myCharts = echarts.init(document.getElementById('main'));
+        var option = {
+
+            legend: {
+                y: 'bottom',
+                data: ['计划时间', '实际时间']  //修改的地方1
+
+            },
+            grid: {
+                containLabel: true,
+                left: 20
+            },
+            xAxis: {
+                type: 'time'
+            },
+
+            yAxis: {
+
+                data: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7']
+
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: function(params) {
+                    var res = params[0].name + "</br>"
+                    var date0 = params[0].data;
+                    var date1 = params[1].data;
+                    var date2 = params[2].data;
+                    var date3 = params[3].data;
+                    date0 = date0.getFullYear() + "-" + (date0.getMonth() + 1) + "-" + date0.getDate();
+                    date1 = date1.getFullYear() + "-" + (date1.getMonth() + 1) + "-" + date1.getDate();
+                    date2 = date2.getFullYear() + "-" + (date2.getMonth() + 1) + "-" + date2.getDate();
+                    date3 = date3.getFullYear() + "-" + (date3.getMonth() + 1) + "-" + date3.getDate();
+                    res += params[0].seriesName + "~" + params[1].seriesName + ":</br>" + date0 + "~" + date1 + "</br>"
+                    res += params[2].seriesName + "~" + params[3].seriesName + ":</br>" + date2 + "~" + date3 + "</br>"
+                    console.log(params[0]);
+                    return res;
+                }
+            },
+            series: [
+
+                {
+                    name: '计划开始时间',
+                    type: 'bar',
+                    stack: 'test1',
+                    itemStyle: {
+                        normal: {
+                            color: 'rgba(0,0,0,0)'
+                        }
+                    },
+                    data: [
+                        new Date("2022/09/2"),
+                        new Date("2022/09/15"),
+                        new Date("2022/09/15"),
+                        new Date("2022/10/03"),
+                        new Date("2022/10/04"),
+                        new Date("2022/10/05"),
+                        new Date("2022/10/06")
+                    ]
+                },
+                {
+                    name: '计划时间',
+                    type: 'bar',
+                    stack: 'test1',
+//修改地方2
+                    itemStyle: {
+                        normal: {
+                            color: '#F98563'
+                        }
+                    },
+                    data: [
+                        new Date("2022/09/12"),
+                        new Date("2022/09/20"),
+                        new Date("2022/09/25"),
+                        new Date("2022/10/05"),
+                        new Date("2022/10/07"),
+                        new Date("2022/10/09"),
+                        new Date("2022/10/12")
+                    ]
+                },
+                {
+                    name: '实际开始时间',
+                    type: 'bar',
+                    stack: 'test2',
+                    itemStyle: {
+                        normal: {
+                            color: 'rgba(0,0,0,0)'
+                        }
+                    },
+                    data: [
+                        new Date("2022/09/2"),
+                        new Date("2022/09/15"),
+                        new Date("2022/09/15"),
+                        new Date("2022/10/03"),
+                        new Date("2022/10/04"),
+                        new Date("2022/10/05"),
+                        new Date("2022/10/06")
+                    ]
+                },
+                {
+                    name: '实际时间',
+                    type: 'bar',
+                    stack: 'test2',
+//修改地方3
+                    itemStyle: {
+                        normal: {
+                            color: '#A2E068'
+                        }
+                    },
+                    data: [
+                        new Date("2022/09/6"),
+                        new Date("2022/09/20"),
+                        new Date("2022/09/27"),
+                        new Date("2022/10/11"),
+                        new Date("2022/10/16"),
+                        new Date("2022/10/18"),
+                        new Date("2022/10/17")
+                    ]
+                }
+            ]
+        };
+        myCharts.setOption(option);
+
+    },
+
+    methods:{
+        //获取当前时间
+    dateFormat() {
+            // 为小于10的数字补零
+            let date = new Date();
+            let year = date.getFullYear();
+            let month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+            let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+            let hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+            let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+            let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+            var createTime = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+            this.newScheduleRecord.createTime=createTime;
+            },
+
+
+        myReturn() {
+                location.href = 'main.html';
+        },
+
+        getRecordAll(){
+            axios({
+                url:"http://localhost:8080/recordList",
+                method:'GET'
+            }).then(res => {
+                this.recordDataList = res.data.data;
+            })
+
+        },
+
+        recordConfirm(){
+            this.dialogRecordVisible = false;
+
+        },
+        recordCancel(){
+            this.dialogRecordVisible = false;
+        },
+
+        //删除记录
+        deleteRecord(){
+            this.newScheduleRecord.productionNumber = this.currentRow.productionNumber;
+            axios({
+                url:'http://localhost:8080/deleteRecord',
+                method: 'POST',
+                data: this.newScheduleRecord,
+            }).then(res => {
+                if(res.data.code=20021){
+
+                    this.$message.success('删除成功');
+
+                }
+
+            }).finally(()=>{
+                this.getRecordAll();
+            })
+
+        },
+        //---------------------------------------------------------------------------------------------
+
+        getPartAll() {
+            //发送ajax请求
+            axios({
+                url:"http://localhost:8080/partList",
+                method:'GET'
+            }).then(res => {
+                this.partDataList = res.data.data;
+            })
+
+            // axios.get("/aps").then((res)=>{
+            //     this.dataList = res.data.data;
+            //     // console.log(res);
+            // });
+        },
+
+        partCancel(){
+            this.dialogPartVisible = false;
+            this.newScheduleRecord.partNo = '';
+            this.newScheduleRecord.partName = '';
+
+        },
+        partConfirm() {
+            this.dialogPartVisible = false;
+            this.newScheduleRecord.partNo = this.currentRow.partno;
+            this.newScheduleRecord.partName = this.currentRow.partname;
+
+        },
+
+        //设备信息查询----------------------------------------------------------------
+        getEquipmentAll(){
+            axios({
+                url:"http://localhost:8080/equipmentList",
+                method:'GET'
+            }).then(res => {
+                this.equipmentDataList = res.data.data;
+            })
+        },
+
+
+        //表格选中行
+        handleCurrentChange(val) {
+            this.currentRow = val;
+        },
+
+
+        //重置输入框
+        resetInput() {
+            this.newScheduleRecord.productionNumber = '';
+            this.newScheduleRecord.orderNumber = '';
+            this.newScheduleRecord.customerName = '';
+            this.newScheduleRecord.partNo = '';
+            this.newScheduleRecord.partName = '';
+            this.newScheduleRecord.number = 100;
+        },
+
+        //设备信息隐藏
+        eHide(){
+            this.dialogEquipmentVisible = false;
+        },
+
+        //生产排程计算
+        schedule() {
+
+
+            if(this.newScheduleRecord.productionNumber ==''){
+                this.$message.error('请输入生产任务单号');
+            }
+            else if(this.newScheduleRecord.partNo==''){
+                this.$message.error('请选择物料');
+            }
+            else {
+
+                console.log('生产任务单号:', this.newScheduleRecord.productionNumber);
+                console.log('订单编号:', this.newScheduleRecord.orderNumber);
+                console.log('客户名称:', this.newScheduleRecord.customerName);
+                console.log('物料编号:', this.newScheduleRecord.partNo);
+                console.log('物料名称:', this.newScheduleRecord.partName);
+                console.log('需求数量:', this.newScheduleRecord.number);
+                console.log('当前时间:',this.newScheduleRecord.createTime);
+
+                //提交表单
+                axios({
+                    url:'http://localhost:8080/addRecord',
+                    method: 'POST',
+                    data: this.newScheduleRecord,
+                }).then(res =>{
+                    if(res.data.code==20011){
+                        this.resetInput()
+                    }
+                    else{
+                        this.$message.error('系统错误请稍后再试！');
+                    }
+                })
+                    .finally(()=>{
+                        this.getRecordAll();
+                    });
+
+
+
+
+
+                var jsonData = this.equipmentDataList;
+                console.log("后台json数据", jsonData);
+
+
+            }
+
+
+        },
+
+
+
+
+
+
+
+
+
+
+
+    }
+})
+</script>
+</html>

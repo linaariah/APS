@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>制造执行系统</title>
+</head>
+<style>
+
+    body {
+        background-image: url("./img/BP3.png");
+        opacity: 0.9;
+    }
+    .el-header {
+        background: #4c8ed7;
+        line-height: 40px;
+    }
+    .header {
+        background-color: #0e539a;
+        padding: 10px 10px 10px 50px;
+        color: white;
+        font-size: 18px;
+        margin: 10px;
+        box-shadow: 0px 4px 4px rgb(0 0 0 / 12%), 0px 1px 2px rgb(0 0 0 / 24%);}
+
+    .el-main {
+        background: #f6f6f6;
+        padding: 10px 10px 10px 10px;
+        border: 2px;
+        margin: 0px 10px 10px 10px;
+        box-shadow: 0px 4px 4px rgb(0 0 0 / 12%), 0px 1px 2px rgb(0 0 0 / 24%);
+    }
+
+    .el-row {
+        margin-bottom: 20px;
+
+    }
+
+    /*.el-col {*/
+    /*    border-radius: 4px;*/
+    /*}*/
+
+    /*.bg-purple-dark {*/
+    /*    background: #99a9bf;*/
+    /*}*/
+
+    .bg-purple {
+        background: #f6f6f6;
+    }
+
+    /*.bg-purple-light {*/
+    /*    background: #f6f6f6;*/
+    /*}*/
+
+    .grid-content {
+        border-radius: 4px;
+        min-height: 36px;
+        padding: 10px 10px 10px 10px;
+    }
+
+    /*.row-bg {*/
+    /*    padding: 10px 0;*/
+    /*    background-color: #f9fafc;*/
+    /*}*/
+
+    /*.el-table--striped .el-table__body tr.el-table__row--striped.current-row td,*/
+    /*.el-table__body tr.current-row>td {*/
+    /*    color: #fff;*/
+    /*    background-color: #a2a4a7 !important;*/
+    /*}*/
+
+</style>
+<body>
+
+<div id="app">
+    <div class="header">
+        <h1 style='margin: 20px 0px 0px 0px;'>制造执行系统</h1>
+        <div style='color:#ffffff;text-align: right;'>
+            你好<br>
+            <span>系统管理员</span>
+        </div>
+    </div>
+
+    <el-row>
+        <el-col :span="24">
+            <el-menu style="background: #f6f6f6;
+						border: 2px;
+					   margin: 10px 10px 0px 10px;
+					box-shadow: 0px 4px 4px rgb(0 0 0 / 12%), 0px 1px 2px rgb(0 0 0 / 24%);" class="el-menu-demo" mode="horizontal"
+                     @select="select_menu" text-color="#303133">
+                <el-submenu index="1">
+                    <template slot="title">人员管理</template>
+                    <el-menu-item index="register" :disabled="system">人员注册</el-menu-item>
+                    <el-submenu index="1-1" :disabled="evaluate">
+                        <template slot="title">绩效评价体系</template>
+                        <el-menu-item index="workmanevaluate">工人绩效统计</el-menu-item>
+                    </el-submenu>
+                </el-submenu>
+
+
+                <el-submenu index="2">
+                    <template slot="title">产品管理</template>
+                    <el-menu-item index="part" :disabled="part">物料-工艺信息管理</el-menu-item>
+                    <el-menu-item index="partbom" :disabled="partbom">物料BOM管理</el-menu-item>
+                    <el-menu-item index="processbom" :disabled="processbom">工艺BOM管理</el-menu-item>
+                    <el-menu-item index="qualitystandard" :disabled="qualitystandard">工艺质量标准管理</el-menu-item>
+
+                </el-submenu>
+
+                <el-submenu index="3">
+                    <template slot="title">生产管理</template>
+
+                    <el-submenu index="3-1" :disabled="product">
+                        <template slot="title">生产基本信息管理</template>
+                        <el-menu-item index="workshop" :disabled="product">车间信息管理</el-menu-item>
+                        <el-menu-item index="line" :disabled="product">产线信息管理</el-menu-item>
+                        <el-menu-item index="station" :disabled="product">工位信息管理</el-menu-item>
+                    </el-submenu>
+
+                    <el-menu-item index="planbreak" :disabled="dayplanbreak">计划排程系统 (APS)</el-menu-item>
+                    <el-menu-item index="dayplanmake" :disabled="dayplanmake">车间作业计划制定</el-menu-item>
+                    <el-menu-item index="dayplancheck" :disabled="dayplancheck">车间作业计划审核</el-menu-item>
+                    <el-menu-item index="dayplanpulished" :disabled="dayplanpulished">已发布计划查询</el-menu-item>
+                    <el-menu-item index="mobile" :disabled="mobile">作业计划执行</el-menu-item>
+                    <el-menu-item index="dayplandoing" :disabled="dayplandoing">正在执行计划</el-menu-item>
+
+                    <el-submenu index="3-2" :disabled="dayplanmonitor">
+                        <template slot="title">生产情况报表</template>
+                        <el-menu-item index="dayplanmonitor">计划完成情况统计表</el-menu-item>
+                        <el-menu-item index="dayplancompletionrate">车间计划完成情况统计图</el-menu-item>
+                        <el-menu-item index="dayplancompletionrateline">产线计划完成情况统计图</el-menu-item>
+                        <el-menu-item index="dayplanabnormalrate">车间工单异常情况统计图</el-menu-item>
+                        <el-menu-item index="dayplanabnormalrateline">产线工单异常情况统计图</el-menu-item>
+                        <el-menu-item index="capacityworkshop">车间产能统计</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="3-3" :disabled="product">
+                        <template slot="title">车间运行状态监控</template>
+                        <el-menu-item index="workshopmonitor" >车间运行状态监控（PC端）</el-menu-item>
+                    </el-submenu>
+                </el-submenu>
+
+                <el-submenu index="4">
+                    <template slot="title">质量管理</template>
+                    <el-submenu index="4-1" :disabled="qualityrecord">
+                        <template slot="title">检测信息录入</template>
+                        <el-menu-item index="inspectionrecord">检测信息录入</el-menu-item>
+                        <el-menu-item index="qualityrecord">控制图检测信息录入</el-menu-item>
+                        <el-menu-item index="purchasedrecord">采购件检测信息录入</el-menu-item>
+                    </el-submenu>
+                    <el-menu-item index="qualitymonitor" :disabled="qualitymonitor">检测结果查询</el-menu-item>
+
+                    <el-submenu index="4-2" :disabled=" qualityspc">
+                        <template slot="title">质量分析与控制工具</template>
+                        <el-menu-item index="qualityspc">检测结果统计图</el-menu-item>
+
+                        <el-submenu index="4-2-1">
+                            <template slot="title">不合格原因排列图</template>
+                            <el-menu-item index="workshoppareto">车间不合格物料排列图</el-menu-item>
+                            <el-menu-item index="pareto">物料不合格原因排列图</el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="4-2-2">
+                            <template slot="title">分析用控制图</template>
+                            <el-menu-item index="qualityspcxbar">计量值控制图</el-menu-item>
+                            <el-menu-item index="qualityspccount">计数值控制图</el-menu-item>
+                        </el-submenu>
+
+                        <el-menu-item index="histogram">质量过程能力分析</el-menu-item>
+                        <el-menu-item index="qualityspccontrol">控制用控制图</el-menu-item>
+                        <el-menu-item index="passrate">物料合格率统计图</el-menu-item>
+                        <el-menu-item index="itempassrate">检测项目合格率统计图</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="4-3" >
+                        <template slot="title">采购件质量管理</template>
+                        <el-menu-item index="supplier">供应商信息管理</el-menu-item>
+                        <el-menu-item index="purchase">采购单信息管理</el-menu-item>
+                        <el-menu-item index="externalmonitor">采购件检测结果查询</el-menu-item>
+                        <el-menu-item index="purchasepassrate">采购单物料合格率统计图</el-menu-item>
+                        <el-menu-item index="supplierevaluate">供应商评价</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="4-4" >
+                        <template slot="title">电机检测数据分析</template>
+                        <el-menu-item index="producttesting">三相电机检测数据导入</el-menu-item>
+                        <el-menu-item index="producttestingquality">三相电机检测数据分析</el-menu-item>
+                        <el-menu-item index="stator">三相电机定子检测数据导入</el-menu-item>
+                        <el-menu-item index="statorquality">三相电机定子检测数据分析</el-menu-item>
+                        <el-menu-item index="dynamicbalance">动平衡检测数据导入</el-menu-item>
+                        <el-menu-item index="dynamicbalancequality">动平衡检测数据分析</el-menu-item>
+                    </el-submenu>
+
+                </el-submenu>
+
+
+                <el-submenu index="5">
+                    <template slot="title">物流管理</template>
+                    <el-menu-item index="dayplanpartneed" :disabled="dayplanpartneed">工单物料需求响应</el-menu-item>
+                    <el-menu-item index="deliverneeddo" :disabled="deliverneeddo">工位临时物料需求响应</el-menu-item>
+                    <el-menu-item index="dayplanpartfinishneed" :disabled="partfinishneed">完工物料流转需求响应
+                    </el-menu-item>
+                    <el-menu-item index="deliverexecute" :disabled="deliverexcute">物料流转</el-menu-item>
+
+                    <el-submenu index="5-1" :disabled="delivermonitor">
+                        <template slot="title">物料流转记录查询</template>
+                        <el-menu-item index="delivermonitor">物料流转记录查询</el-menu-item>
+                        <el-menu-item index="dayplanpartneedquery">物料需求响应记录查询</el-menu-item>
+                        <el-menu-item index="dayplanpartfinishneedquery">完工物料流转记录查询</el-menu-item>
+                    </el-submenu>
+
+                    <el-menu-item index="wip" :disabled="wip">车间在制品监控</el-menu-item>
+                </el-submenu>
+
+                <el-submenu index="6">
+                    <template slot="title">设备管理</template>
+                    <el-menu-item index="equipment" :disabled="equipment">设备信息管理</el-menu-item>
+                    <el-menu-item index="equipmentrepair" :disabled="equipmentrepair">设备异常响应</el-menu-item>
+                    <el-menu-item index="equipmentmaintain" :disabled="equipmentmaintain">设备预防性维护</el-menu-item>
+
+                    <el-submenu index="6-2" :disabled="equipmentrepairrecord">
+                        <template slot="title">设备维护记录</template>
+                        <el-menu-item index="equipmentrepairrecord">设备异常处理记录</el-menu-item>
+                        <el-menu-item index="equipmentmaintainrecord">设备预防性维护记录</el-menu-item>
+                        <el-menu-item index="equipment5s">设备5S打卡记录</el-menu-item>
+                    </el-submenu>
+
+                    <el-submenu index="6-1" :disabled="equipmenttable">
+                        <template slot="title">设备相关报表</template>
+                        <el-menu-item index="equipmentrecord">设备运行情况报表</el-menu-item>
+                    </el-submenu>
+                </el-submenu>
+            </el-menu>
+        </el-col>
+    </el-row>
+
+    <el-container>
+        <el-main>
+
+            <el-row >
+                <el-col :span="6">
+                    <div class="grid-content bg-purple">
+
+                    </div>
+                </el-col>
+                <el-col :span="12">
+                    <div style='text-align: center;color: #bd2d30;font-size: 30px;margin: 30px;font-weight: bold;'>
+                        公告 </div>
+                    <div style='font-size: 18px;text-align: center;'>
+                        <h4>请仔细阅读MES使用规范</h4>
+                        <el-button style="font-size: 18px; font-weight: bold;"
+                                   type="text"  @click="update = true"><u>系统更新日志</u></el-button>
+                    </div>
+                </el-col>
+                <el-col :span="8">
+                    <div class="grid-content bg-purple">
+
+                    </div>
+                </el-col>
+            </el-row>
+
+        </el-main>
+    </el-container>
+
+
+    <el-dialog title="系统更新日志" :visible.sync="update" width="600px">
+        <div id="update" style="font-size: 14px;color: #000000;">
+            <h4>
+                2022-05-07:针对电机检测数据、定子检测数据、动平衡检测数据增加了数据导入与分析功能。
+            </h4>
+            <h4>
+                2022-05-07:质量标准可以通过.csv文件导入。
+            </h4>
+            <h4>
+                2022-05-07:优化了工单异常提交功能，相应查询也进行了修改。
+            </h4>
+        </div>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="update = false">隐 藏</el-button>
+        </div>
+    </el-dialog>
+
+
+
+</div>
+
+</body>
+
+<script src="js/vue.js"></script>
+<script src="element-ui/lib/index.js"></script>
+<link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+<script src="js/axios-0.18.0.js"></script>
+<script>
+var app = new Vue({
+el: '#app',
+data: {
+//系统更新日志
+    update: false,
+    planbreak: true,
+},
+    methods:{
+        select_menu(index, indexPath) {
+            //console.log(key, keyPath);
+            if (index == 'planbreak') {
+                location.href = 'aps.html';
+            }
+
+        },
+    }
+
+
+})
+</script>
+</html>

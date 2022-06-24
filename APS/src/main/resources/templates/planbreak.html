@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<th:block th:insert=" ~{common::title}"></th:block>
+		<th:block th:insert=" ~{common::headers}"></th:block>
+		<!-- <script src="/js/moment.js"></script> -->
+		<title></title>
+		<style>
+			body {
+				background-color: #ffffff;
+				background: url([[@{/img/BP3.png}]]) repeat;
+				opacity: 0.95;
+			}
+
+			.el-header {
+				background: #4c8ed7;
+				line-height: 40px;
+			}
+
+			.el-main {
+				background: #f6f6f6;
+				border: 2px;
+				margin: 10px;
+				box-shadow: 0px 4px 4px rgb(0 0 0 / 12%), 0px 1px 2px rgb(0 0 0 / 24%);
+			}
+
+			.header {
+				background-color: #0e539a;
+				padding: 10px 10px 10px 50px;
+				color: white;
+				font-size: 18px;
+				margin: 10px;
+				box-shadow: 0px 4px 4px rgb(0 0 0 / 12%), 0px 1px 2px rgb(0 0 0 / 24%);
+
+			}
+
+			.el-row {
+				margin-bottom: 20px;
+
+				&:last-child {
+					margin-bottom: 0;
+				}
+			}
+
+			.el-col {
+				border-radius: 4px;
+			}
+
+			.bg-purple-dark {
+				background: #f1f1f2;
+			}
+
+			.bg-purple {
+				background: #f6f6f6;
+			}
+			
+			
+			.bg-purple-light {
+				background: #f6f6f6;
+			}
+
+			.grid-content {
+				border-radius: 4px;
+				min-height: 36px;
+				padding: 10px 10px 10px 10px;
+			}
+
+			.row-bg {
+				padding: 10px 0;
+				background-color: #f9fafc;
+			}
+			.el-table--striped .el-table__body tr.el-table__row--striped.current-row td, .el-table__body tr.current-row>td {
+			    color: #fff;
+			    background-color: #a2a4a7!important;
+			}
+			.el-dialog-div {
+			  height: 70vh;
+			  overflow: auto;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div id="app">
+
+		
+
+			<el-container>
+				<el-main>					
+					<el-row style='margin-bottom: 0px;'>
+						<el-col :span="6">
+							<div class="grid-content bg-purple"></div>
+						</el-col>
+						<el-col :span="12">
+							<div style='text-align: center;color: #bd2d30;font-size: 30px;'>计划分解与排程</div>
+						</el-col>
+						<el-col :span="6">
+							<div class="grid-content bg-purple"></div>
+						</el-col>
+					</el-row>
+
+					<el-row>
+					  <el-col :span="24">
+						  <div class="grid-content bg-purple" 
+						  style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+						  background-color: #ffffff;">
+					  <div style='padding:10px'>
+						<div style='padding:10px 10px 10px 10px'>
+						<span style='color: #909399;font-weight:bolder;'>计划编号：</span> 
+						 <el-input v-model.trim="breakform.erpplanid" placeholder="请输入内容" style='width:240px;margin:0px 10px 10px 0px;'>
+							 <el-button slot="append" icon="el-icon-search" onclick='my.history()'>分解记录</el-button>
+						 </el-input>
+						
+						
+						<span style='color: #909399;font-weight:bolder;'>订单编号：</span>
+						<el-input v-model.trim="breakform.orderid" placeholder="可以为空" style='width:120px;margin:0px 10px 10px 0px;'></el-input>
+						
+						<span style='color: #909399;font-weight:bolder;'>物料编号：</span>
+						<el-input :disabled="true" v-model.trim="breakform.partno" placeholder="需分解的物料" style='width:250px;margin:0px 10px 10px 0px;'>
+							<el-button slot="append" icon="el-icon-search" onclick='my.selectpartno()'>选择物料</el-button>
+						</el-input>
+						
+						<span style='color: #909399;font-weight:bolder;'>物料名称：</span>
+						<el-input :disabled="true" v-model.trim="breakform.partname" style='width:120px;margin:0px 10px 10px 0px;'></el-input>
+						
+						<span style='color: #909399;font-weight:bolder;'>需求数量：</span>
+						<el-input-number :min="1" :max="9999"
+						v-model="breakform.neednum">
+						</el-input-number>
+						
+						<el-button type="primary" onclick='my.planbreakdialog()' style='margin: 0px 0px 0px 10px;'>分解</el-button>
+						<el-button onclick='my.reset()'>重置</el-button>
+						<el-button type="success" onclick='my.do_query()'>查询</el-button>
+					  </div>
+					  </div>								  
+					  <el-table :data="tableData"
+								height="600"
+								style="width: 100%; maring: 10px 20px">
+						<el-table-column prop="id" label="ID" width='120' >
+						</el-table-column>	
+						<el-table-column prop="erpplanid" label="计划编号" >
+						</el-table-column>
+						<el-table-column prop="orderid" label="订单编号" >
+						</el-table-column>
+						<el-table-column prop="partno" label="物料编号" >
+						</el-table-column>
+						<el-table-column prop="partname" label="物料名称" >
+						</el-table-column>
+						<el-table-column prop="model" label="规格型号" >
+						</el-table-column>
+						<el-table-column prop="processname" label="工序名称" >
+						</el-table-column>
+						<el-table-column prop="time" label="节拍/s" >
+						</el-table-column>
+						<el-table-column prop="neednum" label="需求数量" >
+						</el-table-column>
+						<el-table-column prop="residual" label="剩余数量" >
+						</el-table-column>
+						<el-table-column prop="targetpart" label="目标物料编号" >
+						</el-table-column>
+
+						<el-table-column
+						      label="操作"
+						      width="140">
+						      <template slot-scope="scope">
+						        <el-button @click="handleClick(scope.row)"
+								 type="text" size="small">排程</el-button>
+						        <el-button  @click="handleClickcancel(scope.row)"
+								type="text" size="small">不安排生产</el-button>
+						      </template>
+						</el-table-column>
+							
+					  </el-table>
+					  </div></el-col>
+					</el-row>
+				</el-main>
+			</el-container>
+			
+			<el-dialog title="分解历史记录" :visible.sync="breakhistory" width="800px">
+				
+				
+				<el-table :data="tableDatabreakhistory" 				           
+						   height=500
+						   highlight-current-row
+						   @current-change="handleCurrentbreakhistory"
+					       style="width: 100%; maring: 10px 10px">						   					
+					<el-table-column prop="erpplanid" label="计划编号" >
+					</el-table-column>
+					<el-table-column prop="orderid" label="订单编号" >
+					</el-table-column>
+					<el-table-column prop="targetpart" label="目标物料" >
+					</el-table-column>
+					<el-table-column prop="partname" label="物料名称" >
+					</el-table-column>
+					<el-table-column prop="model" label="规格型号" >
+					</el-table-column>
+					<el-table-column prop="neednum" label="需求数量" >
+					</el-table-column>
+					<el-table-column prop="breaktime" label="分解时间" :formatter="dateFormat" >
+					</el-table-column>
+					
+				</el-table>				
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="breakhistory = false">取 消</el-button>
+					<el-button type="primary" onclick='my.breakhistoryselect()'>确 定</el-button>
+				</div>				
+			</el-dialog>
+			
+			<el-dialog title="单击表格选择物料" :visible.sync="dialogPart" width="800px">
+				<div style='padding:10px'>
+					<el-input v-model.trim="filterpartno" placeholder="请输入物料编码" style='width:200px'></el-input>
+					<el-input v-model.trim="filterpartname" placeholder="请输入物料名称" style='width:200px'></el-input>
+					<!-- 修改1 -->
+					<el-input v-model.trim="filtermodel" placeholder="请输入型号规格" style='width:200px'></el-input>
+					<el-button type="primary" onclick='my.do_query_part()'>查询</el-button>
+				</div>
+				
+				<el-table :data="tableDataSelectPart" 				           
+						   height=300
+						   highlight-current-row
+						   @current-change="handleCurrentPart"
+					       style="width: 100%; maring: 10px 10px">						   					
+					<el-table-column prop="partno" label="物料编号" >
+					</el-table-column>	
+					<el-table-column prop="partname" label="物料名称" >
+					</el-table-column>
+					<el-table-column prop="model" label="规格型号" >
+					</el-table-column>
+					<el-table-column prop="processname" label="工序名称" >
+					</el-table-column>
+					<el-table-column prop="time" label="节拍/s" >
+					</el-table-column>	
+				</el-table>				
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="dialogPart = false">取 消</el-button>
+					<el-button type="primary" onclick='my.partselect()'>确 定</el-button>
+				</div>				
+			</el-dialog>
+			
+			<el-dialog title="提示" :visible.sync="dialog_planbreak" width="300px">
+				
+				<div style='color: #000000;font-weight:bolder;'>计划分解前请确保该物料<工艺BOM>已经完善！</div>
+				<span style='color: #000000;font-weight:bolder;'>{{breaking}}</span>
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="dialog_planbreak = false">取 消</el-button>
+					<el-button type="primary" onclick='my.do_break()'>确 定</el-button>
+				</div>				
+			</el-dialog>
+			
+			<el-dialog title="车间作业计划制定" :visible.sync="dayplanmake" width="1000px">
+				<div class="el-dialog-div">
+					<div>
+						<el-row>
+							
+							<el-col :span="18" >
+								<el-form ref="form" :model="form" label-width="350px" >
+									
+									<el-form-item label="物料编号" prop="partno">
+										<el-input placeholder="工位生产出的物料" :disabled="true" v-model="form.partno" style='width: 100%;' >
+										</el-input>
+									</el-form-item>
+									<el-form-item  label="物料名称" prop='partname'>
+										<el-input :disabled="true" v-model="form.partname"></el-input>
+									</el-form-item>	
+									<el-form-item label="工序名称" >
+										<el-input :disabled="true" v-model="form.processname" style='width: 100%;' >
+										</el-input>
+									</el-form-item>
+
+									<el-form-item label="班次" prop='shift'>
+										<el-input-number :min="1" :max="3"
+										v-model="form.shift">
+										</el-input-number>
+									</el-form-item>										
+									<el-form-item label="计划日期" prop='date'>
+										<el-date-picker
+										      v-model="form.date"
+										      type="date"
+										      placeholder="选择日期"
+											  :picker-options="pickerOptions">
+										</el-date-picker>
+									</el-form-item>
+									
+									<el-form-item label="车间编号" prop="stationid">
+										<el-input :disabled="true" v-model="form.workshopid" style='width: 100%;'>
+										<el-button slot="append" icon="el-icon-search" onclick='my.selectworkshopid()'>选择车间</el-button>
+										</el-input>
+									</el-form-item>
+									<el-form-item label="车间名称" >
+										<span style='font-weight:bolder;'>{{workshopname}}</span>
+									</el-form-item>
+									<el-form-item label="产线编号" prop='lineid'>
+										<el-input :disabled="true" v-model="form.lineid" style='width: 100%;'>
+										<el-button slot="append" icon="el-icon-search" onclick='my.selectlineid()'>选择产线</el-button>
+										</el-input>
+									</el-form-item>
+									<el-form-item label="产线名称" >
+										<span style='font-weight:bolder;'>{{linename}}</span>
+									</el-form-item>
+									<el-form-item label="工位编号" prop='stationid'>
+										<el-input :disabled="true" v-model="form.stationid" style='width: 100%;'>
+										<el-button slot="append" icon="el-icon-search" onclick='my.selectstationid()'>选择工位</el-button>
+										</el-input>
+									</el-form-item>	
+									<el-form-item label="工位名称" >
+										<span style='font-weight:bolder;'>{{stationname}}</span>
+									</el-form-item>
+									<el-form-item label="需求数量" prop='neednum'>
+										<el-input-number :min="0" :max="9999" 
+										v-model="form.neednum">
+										</el-input-number>
+									</el-form-item>									
+									<el-form-item label="计划序号" prop='dayplanid'>
+										<el-input-number :min="1" :max="99"
+										v-model="form.dayplanid">
+										</el-input-number>
+									</el-form-item>
+																										
+								    <el-form-item>
+									<el-button type="primary" onclick='my.on_submit()'>提交</el-button>
+									<el-button onclick='my.resetform()'>重置</el-button>
+									<el-button @click="dayplanmake = false">取 消</el-button>
+								    </el-form-item>
+								</el-form>
+							</el-col>
+						</el-row>
+						<div  >
+							<el-table :data="tableDataGantt"
+									height="300"
+									stripe
+									style="width: 100%;">
+							<el-table-column type="index" label="序号" width="50">
+							</el-table-column>	
+							<el-table-column prop="dayplanid" label="工单号" width="160">
+							</el-table-column>											
+							<el-table-column prop="stationid" label="工位编号" >
+							</el-table-column>
+							<el-table-column prop="partno" label="物料编码">
+							</el-table-column>
+							<el-table-column prop="partname" label="物料名称">
+							</el-table-column>
+							<el-table-column prop="processname" label="工序编号">
+							</el-table-column>
+							<el-table-column prop="neednum" label="需求数量">
+							</el-table-column>
+							<el-table-column prop="time" label="节拍/s">
+							</el-table-column>
+							<el-table-column prop="dayplantime" label="计划用时/h">
+							</el-table-column>
+							<el-table-column prop="date" label="计划日期" :formatter="dateFormat">
+							</el-table-column>																																						  
+							</el-table>
+						</div>
+					</div>				
+					
+				</div>	
+			</el-dialog>
+			
+			<el-dialog title="不安排生产" :visible.sync="dayplancancel" width="500px">
+				<span style='color: #909399;font-weight:bolder;font-size: 15px;'>不安排生产数量: </span>
+				<el-input-number :min="0" :max="9999"
+				v-model="form.neednum">
+				</el-input-number>
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="dayplancancel = false">取 消</el-button>
+					<el-button type="primary" onclick='my.dayplancancel()'>确 定</el-button>
+				</div>				
+			</el-dialog>
+			
+			<el-dialog title="单击表格选择车间" :visible.sync="dialogWorkshop" width="400px">
+				<el-table :data="tableDataSelectWorkshop" 				           
+						   height=300
+						   highlight-current-row
+						   @current-change="handleCurrentWorkshop"
+					       style="width: 100%; maring: 10px 10px">						   					
+					<el-table-column prop="workshopid" label="车间编号" >
+					</el-table-column>
+					<el-table-column prop="workshopname" label="车间名称" >
+					</el-table-column>																											
+				</el-table>				
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="dialogWorkshop = false">取 消</el-button>
+					<el-button type="primary" onclick='my.workshopselect()'>确 定</el-button>
+				</div>				
+			</el-dialog>
+			
+			<el-dialog title="单击表格选择产线" :visible.sync="dialogLine" width="500px">
+				<el-table :data="tableDataSelectLine" 				           
+						   height=300
+						   highlight-current-row
+						   @current-change="handleCurrentLine"
+					       style="width: 100%; maring: 10px 10px">						   					
+					<el-table-column prop="lineid" label="产线编号" >
+					</el-table-column>
+					<el-table-column prop="linename" label="产线名称" >
+					</el-table-column>																											
+				</el-table>				
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="dialogLine = false">取 消</el-button>
+					<el-button type="primary" onclick='my.lineselect()'>确 定</el-button>
+				</div>				
+			</el-dialog>
+			
+			<el-dialog title="单击表格选择工位" :visible.sync="dialogStation" width="500px">
+				<el-table :data="tableDataSelectStation" 				           
+						   height=300
+						   highlight-current-row
+						   @current-change="handleCurrentStation"
+					       style="width: 100%; maring: 10px 10px">						   					
+					<el-table-column prop="stationid" label="工位编号" >
+					</el-table-column>
+					<el-table-column prop="stationname" label="工位名称" >
+					</el-table-column>																											
+				</el-table>				
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="dialogStation = false">取 消</el-button>
+					<el-button type="primary" onclick='my.stationselect()'>确 定</el-button>
+				</div>				
+			</el-dialog>
+										
+		</div>				
+	</body>
+	<script>
+	var my = {}
+	
+	//加载系统标题
+	my.load_systemtitle=function(){
+			data = null;
+			Af.rest('[[@{/p/load_systemtitle.do}]]', data, function(ret) {
+				if (ret.error != 0) {
+					cc.warn(ret.reason);
+					return
+				}
+				app.systemtitle=ret.data[0].systemtitle;
+			})
+		}
+
+	//返回主系统
+	my.return = function(){
+		location.href = '[[@{/p/main}]]' ;
+	}
+	
+	//分解历史
+	my.history= function(){
+		app.breakhistory=true;
+		var data=null;
+		Af.rest('[[@{/p/do_query_planbreakhistory.do}]]', data, function(ret) {
+			if (ret.error != 0) {
+				cc.warn(ret.reason);
+				return
+			}
+			app.tableDatabreakhistory = ret.data;
+		})
+	}
+	
+	my.breakhistoryselect=function(){
+		app.breakform.erpplanid=app.currentRowbreakhistory.erpplanid;
+		app.breakform.orderid=app.currentRowbreakhistory.orderid;
+		app.breakform.partno=app.currentRowbreakhistory.targetpart;
+		app.breakform.partname=app.currentRowbreakhistory.partname;
+		app.breakhistory=false;
+		my.do_query();
+	}
+	
+	//选择物料编号
+	my.selectpartno=function(){
+		app.dialogPart=true;
+		var data =null;
+		
+		Af.rest('[[@{/p/selectpartno.do}]]', data, function(ret){
+			if (ret.error != 0) {
+				cc.warn(ret.reason);
+				return
+			}
+		app.tableDataSelectPart=ret.data;
+		
+		})
+	}
+	
+	//按照物料编号/名字查询
+	my.do_query_part = function() {
+		var data = {
+			filterpartno:app.filterpartno,
+			filterpartname:app.filterpartname,
+			//修改2
+			filtermodel:app.filtermodel,
+		}
+		Af.rest('[[@{/p/do_query_part.do}]]', data, function(ret) {
+			if (ret.error != 0) {
+				cc.warn(ret.reason);
+				return
+			}
+			app.tableDataSelectPart = ret.data;
+		})
+	}
+	
+	//物料信息填充
+	my.partselect=function(){
+		app.breakform.partno=app.currentRowPart.partno;
+		app.breakform.partname=app.currentRowPart.partname;
+		app.dialogPart=false;
+	}
+		
+	//选择车间编号
+	my.selectworkshopid=function(){			
+		app.dialogWorkshop=true;
+		var data =null;
+		
+		Af.rest('[[@{/p/selectworkshopid.do}]]', data, function(ret){
+			if (ret.error != 0) {
+				cc.warn(ret.reason);
+				return
+			}
+		app.tableDataSelectWorkshop=ret.data;
+		
+		})
+	}
+	//车间信息填充
+	my.workshopselect=function(){
+		app.form.workshopid=app.currentRowWorkshop.workshopid;
+		//console.log(app.currentRowWorkshop.workshopname);
+		app.form.lineid='';
+		app.linename='';
+		app.form.stationid='';
+		app.stationname='';
+		app.workshopname=app.currentRowWorkshop.workshopname;
+		app.dialogWorkshop=false;
+	}
+	
+	//选择产线编号
+	my.selectlineid=function(){
+		if(app.form.workshopid==""){
+			alert("请先选择车间编号！")
+		}else{
+			app.dialogLine=true;			
+			var data = {
+				filter: app.form.workshopid,
+			}
+			Af.rest('[[@{/p/selectlineid.do}]]', data, function(ret){
+				if (ret.error != 0) {
+					cc.warn(ret.reason);
+					return
+				}
+			app.tableDataSelectLine=ret.data;		
+		})
+		}				
+	}
+	//产线信息填充
+	my.lineselect=function(){
+		app.form.lineid=app.currentRowLine.lineid;
+		app.form.stationid='';
+		app.stationname='';
+		app.linename=app.currentRowLine.linename;
+		app.dialogLine=false;
+	}
+	
+	//选择工位编号
+	my.selectstationid=function(){
+		if(app.form.lineid==""){
+			alert("请先选择产线编号！")
+		}else{
+			app.dialogStation=true;			
+			var data = {
+				filter: app.form.lineid,
+			}
+			Af.rest('[[@{/p/selectstationid.do}]]', data, function(ret){
+				if (ret.error != 0) {
+					cc.warn(ret.reason);
+					return
+				}
+			app.tableDataSelectStation=ret.data;
+			
+		})
+		}				
+	}	
+	//工位信息填充
+	my.stationselect=function(){
+		app.form.stationid=app.currentRowStation.stationid;
+		app.stationname=app.currentRowStation.stationname;
+		app.dialogStation=false;
+		my.do_query_gantt();
+	}
+	
+	//重置
+	my.reset = function() {
+		app.breakform.erpplanid = '';
+		app.breakform.orderid = '';
+		app.breakform.partno = '';
+		app.breakform.partname = '';
+		app.breakform.neednum = 1;
+	}
+	//重置排程表单
+	my.resetform = function() {
+		app.workshopname='';
+		app.linename='';
+		app.stationname='';
+		app.form.workshopid = '';
+		app.form.lineid = '';
+		app.form.stationid = '';
+		app.form.shift=1;
+		app.form.dayplanid = '';
+		app.form.date = '';
+	}
+	
+	//计划分解弹窗
+	my.planbreakdialog=function(){
+		
+		if(app.breakform.erpplanid==''||app.breakform.partno==''){
+				  alert("计划编号与物料编号不能为空！");
+		}else{
+			app.dialog_planbreak=true;
+		}
+
+	}
+	
+	//计划分解
+	 my.do_break = function() {
+	  var data = app.breakform;
+	  var message1=null;	//提醒分解记录是否已经存在
+	  
+		  app.breaking='分解中。。。';
+		  Af.rest('[[@{/p/do_query_planbreakpartneed.do}]]', data, function(ret) {
+		  if (ret.error != 0) {
+		   cc.warn(ret.reason);
+		   return
+		  }
+		  message1=ret.data[0];
+		  if(message1==null){
+		  	message1="";						
+		  }
+		  if(message1.length>1){
+		  	alert(message1);//提醒该条记录已存在
+			app.breaking='';
+			app.dialog_planbreak=false;
+			my.do_query();
+		  }else{
+			  app.$message({
+				type: 'success',
+				duration: 2000,
+				message: '分解完成',
+				onClose: function() {
+					app.breaking='';
+					app.dialog_planbreak=false;
+					my.do_query();
+				},
+			  });	
+		  }
+
+		  }) 
+	 }
+	
+
+	
+	//按条件查询被分解的计划
+	my.do_query = function() {
+		var data = app.breakform;
+		if(app.breakform.erpplanid==''||app.breakform.partno==''){
+			 alert("计划编号与物料编号不能为空！");
+		}else{
+			Af.rest('[[@{/p/do_query_planbreak.do}]]', data, function(ret) {
+				if (ret.error != 0) {
+					cc.warn(ret.reason);
+					return
+				}
+				
+				app.tableData = ret.data;
+				
+				})
+		}
+
+	}
+	
+	//提交排程表单
+	my.on_submit = function() {
+		var req = app.form;
+		var message1=null;	//提醒计划是否已经存在
+		
+		if(app.form.workshopid == ''||app.form.lineid == ''||app.form.neednum==0||
+	app.form.stationid == ''||app.form.partno == ''||app.form.partname == ''||
+	app.form.dayplanid == ''||app.form.date == ''||app.form.processname == '')		
+		{
+			alert("表单不能为空！");
+		}else{
+	       Af.rest('[[@{/p/submitdayplan.do}]]', req, function(ret) {
+					if (ret.error != 0) {
+						cc.warn(ret.reason);
+						return
+					}
+					message1=ret.data[0];
+					if(message1==null){
+						message1="";						
+					}
+					if(message1.length>1){
+						alert(message1);//提醒该条记录已存在
+					}else{
+						app.$message({
+							type: 'success',
+							duration: 2000,
+							message: '计划已提交审核',
+							onClose: function() {
+								my.do_query_gantt();
+								my.resetform();
+							},
+						});
+						
+						//更新剩余数量
+						var update={
+							erpplanid:app.breakform.erpplanid,//
+							targetpart:app.breakform.partno,//
+							orderid:app.breakform.orderid,
+							partno:app.form.partno,
+							updatenum:app.form.neednum,
+						}
+						Af.rest('[[@{/p/update_planresidualnumber.do}]]', update, function(ret) {
+							if (ret.error != 0) {
+								cc.warn(ret.reason);
+								return
+							}
+							my.do_query();
+						})
+						
+					}														
+				})
+			}		
+		}
+		
+	//不安排生产
+	my.dayplancancel= function(){
+		var update={
+			erpplanid:app.breakform.erpplanid,//
+			targetpart:app.breakform.partno,//
+			orderid:app.breakform.orderid,
+			partno:app.form.partno,
+			updatenum:app.form.neednum,
+		}
+		Af.rest('[[@{/p/update_planresidualnumber.do}]]', update, function(ret) {
+			if (ret.error != 0) {
+				cc.warn(ret.reason);
+				return
+			}
+			
+			app.$message({
+				type: 'success',
+				duration: 1000,
+				message: '操作成功',
+				onClose: function() {
+					app.dayplancancel=false;
+					my.do_query();
+				},
+			});
+			
+			
+		})
+	}
+	
+	var app = new Vue({
+		el: '#app',
+		data() {
+			return {
+				//系统标题
+				systemtitle: '制造执行系统',
+
+				//计划分解弹窗
+				dialog_planbreak:false,
+				breaking:'',//分解中。。。
+				
+				//车间选择
+				tableDataSelectWorkshop: [],
+				currentRowWorkshop:null,//选择当前行
+				dialogWorkshop:false,
+				
+				//产线选择
+				tableDataSelectLine: [],
+				currentRowLine:null,//选择当前行
+				dialogLine:false,
+				
+				//工位选择
+				tableDataSelectStation: [],
+				currentRowStation:null,//选择当前行
+				dialogStation:false,
+				
+				//物料选择
+				tableDataSelectPart: [],
+				filterpartno:'',
+				filterpartname:'',
+				filtermodel:'',
+				currentRowPart:null,//选择当前行
+				dialogPart:false,
+				
+				//分解历史
+				tableDatabreakhistory: [],
+				breakhistory:false,
+				currentRowbreakhistory:null,//选择当前行
+				
+				//排程
+				tableDataGantt:[],
+				dayplanmake:false,
+				//辅助输入信息
+				workshopname:'',
+				linename:'',
+				stationname:'',
+				form: {
+					workshopid: '',
+					lineid:'',
+					stationid: '',						
+					partno: '',
+					partname:'',
+					processname:'',
+					neednum: 1,
+					dayplanid:'',
+					shift:1,
+					date: '',					
+				},
+				
+				pickerOptions: {
+				  disabledDate(time) {
+				    var timenow=new Date().getTime();//当前时间
+					timenow=timenow-1000 * 60 * 60*24;
+					return time.getTime() < timenow;
+				},
+				},
+				
+				//不安排生产
+				dayplancancel:false,
+				
+				//查询信息表单
+				breakform:{
+					id:'',
+					erpplanid:'',
+					orderid:'',
+					partno:'',
+					partname:'',
+					neednum:'',
+					residual:'',
+				},
+
+				tableData: [],
+			
+			}
+		},
+		
+		methods: {
+			
+			//单选到一个物料
+			handleCurrentPart(val){
+				this.currentRowPart=val;
+			},
+			
+			//单选到一个车间
+			handleCurrentWorkshop(val){
+				this.currentRowWorkshop=val;
+			},
+			
+			//单选到一个产线
+			handleCurrentLine(val){
+				this.currentRowLine=val;
+			},
+			
+			//单选到一个工位
+			handleCurrentStation(val){
+				this.currentRowStation=val;
+			},
+			
+			//单选到一个分解历史
+			handleCurrentbreakhistory(val){
+				this.currentRowbreakhistory=val;
+			},
+			
+			//时间格式
+			dateFormat: function(row, column) {
+			
+				var date = row[column.property];
+			
+			 if (date == undefined) {
+					return ''
+				};
+			
+				return moment(date).format("YYYY-MM-DD HH:mm:ss")
+			
+			},
+
+			//排程
+			handleClick(row) {	
+				if(row.residual<=0){
+					alert("当前物料剩余数量<=0!");
+				}
+				this.dayplanmake=true;	
+				this.form.partno=row.partno;
+				this.form.partname=row.partname;
+				this.form.processname=row.processname;
+				this.form.neednum=row.residual;
+				this.breakform.erpplanid=row.erpplanid;
+				this.breakform.orderid=row.orderid;
+				this.breakform.partno=row.targetpart;
+			},
+
+										
+			//修改
+			handleClickcancel(row){
+				if(row.residual<=0){
+					alert("当前物料剩余数量<=0!");
+				}
+				this.dayplancancel=true;	
+				this.form.partno=row.partno;
+				this.form.partname=row.partname;
+				this.form.processname=row.processname;
+				this.form.neednum=row.residual;
+				this.breakform.erpplanid=row.erpplanid;
+				this.breakform.orderid=row.orderid;
+				this.breakform.partno=row.targetpart;
+				
+			},							
+																			
+		},
+		
+		
+	});
+	
+	//当前工位工单
+	my.do_query_gantt = function() {
+		var data = app.form;
+
+		if(app.form.stationid == ''||app.form.date == ''){
+			alert("请选择工位、班次、日期");
+		}else{
+			Af.rest('[[@{/p/do_query_dayplangantt.do}]]', data, function(ret) {
+			if (ret.error != 0) {
+				cc.warn(ret.reason);
+				return
+			}
+			//获取图下方表的数据
+			var neednum=0;
+			var time=0;
+			var dayplantime=0;
+	
+			for(i = 0; i < ret.data.length; i++){
+				neednum=ret.data[i].neednum;
+				time=ret.data[i].time;
+				dayplantime=(neednum*time/3600).toFixed(2);				
+				ret.data[i].dayplantime=dayplantime;				
+			}
+			app.tableDataGantt = ret.data;
+				
+		})
+		}		
+	}
+		
+	my.load_systemtitle();
+	</script>
+</html>
+
+
