@@ -293,14 +293,28 @@
 
 
     <!--Equipment弹出框-->
-    <el-dialog title="设备信息查询" :visible.sync="dialogEquipmentVisible" >
+    <el-dialog title="设备信息查询" :visible.sync="dialogEquipmentVisible" custom-class="customWidth">
+        <!--下拉菜单-->
+        <span style='color: #909399;font-weight:bolder;'>查询所属零件名称：</span>
+        <el-select v-model="partname" placeholder="请选择" clearable @change="searchPartName">
+            <el-option
+                    v-for="item in partNameList"
+                    :key="item.partname"
+                    :label="item.partname"
+                    :value="item.partname">
+            </el-option>
+        </el-select>
+
         <el-table :data="equipmentDataList"  height="450" >
-            <el-table-column prop="equipmentno" label="设备编号" width="100"></el-table-column>
-            <el-table-column prop="equipmentname" label="设备名称" width="150"></el-table-column>
+            <el-table-column prop="equipid" label="设备编号" width="100"></el-table-column>
+            <el-table-column prop="equipname" label="设备名称" width="150"></el-table-column>
+            <el-table-column prop="workshopid" label="车间" width="70"></el-table-column>
+            <el-table-column prop="lineid" label="产线" width="100"></el-table-column>
+            <el-table-column prop="stationid" label="工位" width="130"></el-table-column>
             <el-table-column prop="processname" label="工序"></el-table-column>
             <el-table-column prop="ct" label="节拍/s"></el-table-column>
             <el-table-column prop="processorder" label="加工次序"></el-table-column>
-            <el-table-column prop="partname" label="所属零件名称"></el-table-column>
+            <el-table-column prop="partname" label="所属零件名称" width="150"></el-table-column>
         </el-table>
         <span slot="footer" class="dialog-footer">
     <el-button type="info" @click="eHide">隐 藏</el-button>
@@ -312,6 +326,7 @@
 
     <!--Record弹出框-->
     <el-dialog title="排程记录" :visible.sync="dialogRecordVisible" custom-class="customWidth">
+
         <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChange" height="450">
             <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
             <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
@@ -347,6 +362,8 @@ data: {
     partDataList: [],//选择物料
     equipmentDataList:[],//设备信息查询
     tableData:[],//生产排程表
+    partNameList:[],//所属零件名称表
+    partname:'',//选择器显示
 
     newScheduleRecord:{
         productionNumber:'',//生产任务单号
@@ -588,7 +605,22 @@ data: {
                 method:'GET'
             }).then(res => {
                 this.equipmentDataList = res.data.data;
-            })
+            }),
+                axios({
+                    url:"http://localhost:8080/partNameList",
+                    method:'GET'
+                }).then(res => {
+                    this.partNameList = res.data.data;
+                })
+        },
+
+        searchPartName(){
+            param = "?partname="+this.partname;
+            if(this.partname != ''){
+            axios.get('http://localhost:8080/searchPartNameList/'+param).then(res => {
+                this.equipmentDataList = res.data})
+            }
+            else{this.getEquipmentAll()}
         },
 
 

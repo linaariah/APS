@@ -7,13 +7,15 @@ import lombok.Data;
 @Data
 public class Equipment {
     @TableId(type = IdType.INPUT)
-    private String equipmentno;
-    private String equipmentname;
+    private String equipid;
+    private String equipname;
+    private String workshopid;
+    private String lineid;
+    private String stationid;
     private String processname;
     private Integer ct;
     private Integer processorder;
     private String partname;
-    private String station;
     private String remark;
 
 }

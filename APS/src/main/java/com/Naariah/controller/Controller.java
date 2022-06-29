@@ -7,10 +7,8 @@ import com.Naariah.domain.Part;
 import com.Naariah.domain.Record;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 
@@ -35,12 +33,35 @@ public class Controller {
     @GetMapping("/equipmentList")
     public Result getEquipmentAll(){
         QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("equipmentno","equipmentname","processname","ct","processorder","partname");
+        queryWrapper.select("equipid","equipname","workshopid","lineid","stationid","processname","ct","processorder","partname");
         List<Equipment> equipmentList = equipmentDao.selectList(queryWrapper);
         Integer code = equipmentList != null ? Code.GET_OK : Code.GET_ERR;
         String msg = equipmentList != null ? "" : "数据查询失败，请重试！";
         return  new Result(code,equipmentList,msg);
     };
+
+    @GetMapping("/partNameList")
+    public Result getPartNameAll(){
+        QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("DISTINCT partname");
+        List<Equipment> partNameList = equipmentDao.selectList(queryWrapper);
+        Integer code = partNameList != null ? Code.GET_OK : Code.GET_ERR;
+        String msg = partNameList != null ? "" : "数据查询失败，请重试！";
+        return  new Result(code,partNameList,msg);
+    };
+
+    @GetMapping("/searchPartNameList")
+    public List<Equipment> searchPartNameList(@RequestParam(value = "partname",required = false) String partname){
+        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+        wrapper.eq("partname",partname);
+        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+        return equipmentList;
+    };
+
+
+
+
+
 
     @Autowired
     private RecordDao recordDao;

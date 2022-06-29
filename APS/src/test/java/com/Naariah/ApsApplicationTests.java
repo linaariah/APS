@@ -4,6 +4,7 @@ import com.Naariah.dao.EquipmentDao;
 import com.Naariah.dao.RecordDao;
 import com.Naariah.domain.Equipment;
 import com.Naariah.domain.Record;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,16 @@ class ApsApplicationTests {
 //        List<Part> partList = partDao.selectList(null);
 //        System.out.println(partList);
     }
+    @Test
+    void testSearchAll(){
+        LambdaQueryWrapper<Equipment> lqw = new LambdaQueryWrapper<Equipment>();
+        lqw.eq(Equipment::getPartname, "转子");
+        List<Equipment> equipmentList = equipmentDao.selectList(lqw);
+        System.out.println(equipmentList);
+    }
+
+
+
 
 @Autowired
     private RecordDao recordDao;
@@ -48,5 +59,8 @@ class ApsApplicationTests {
       recordDao.deleteById(002);
 
   }
+
+
+
 
 }
