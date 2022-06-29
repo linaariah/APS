@@ -3,7 +3,7 @@ import com.Naariah.dao.EquipmentDao;
 import com.Naariah.dao.PartDao;
 import com.Naariah.dao.RecordDao;
 import com.Naariah.domain.Equipment;
-import com.Naariah.domain.Part;
+import com.Naariah.domain.PartBom;
 import com.Naariah.domain.Record;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +20,29 @@ public class Controller {
     private PartDao partDao;
     @GetMapping("/partList")
     public Result getPartAll() {
-        List<Part> partList = partDao.selectList(null);
+        QueryWrapper<PartBom> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("DISTINCT part_s","part_s_name","model");
+        List<PartBom> partList = partDao.selectList(queryWrapper);
         Integer code =partList != null ? Code.GET_OK : Code.GET_ERR;
         String msg = partList != null ? "" : "数据查询失败，请重试！";
         return new Result(code,partList,msg);
+    };
+    @GetMapping("/modelNameList")
+    public Result getModelNameAll(){
+        QueryWrapper<PartBom> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("DISTINCT model");
+        List<PartBom> modelNameList = partDao.selectList(queryWrapper);
+        Integer code = modelNameList != null ? Code.GET_OK : Code.GET_ERR;
+        String msg = modelNameList != null ? "" : "数据查询失败，请重试！";
+        return  new Result(code,modelNameList,msg);
+    };
+
+    @GetMapping("/searchModelNameList")
+    public List<PartBom> searchModelNameList(@RequestParam(value = "modelname",required = false) String modelname){
+        QueryWrapper<PartBom> wrapper = new QueryWrapper<>();
+        wrapper.eq("model",modelname);
+        List<PartBom> modelList = partDao.selectList(wrapper);
+        return modelList;
     };
 
 

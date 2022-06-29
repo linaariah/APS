@@ -281,11 +281,21 @@
 
 <!--Part弹出框-->
     <el-dialog title="生产排程物料选择" :visible.sync="dialogPartVisible">
-        <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange">
-            <el-table-column prop="partno" label="物料编号" width="200"></el-table-column>
-            <el-table-column prop="partname" label="物料名称" width="200"></el-table-column>
-            <el-table-column prop="model" label="规格型号"></el-table-column>
-            <el-table-column prop="ct" label="节拍/s"></el-table-column>
+        <!--下拉菜单-->
+        <span style='color: #909399;font-weight:bolder;'>查询所属零件名称：</span>
+        <el-select v-model="modelname" placeholder="请选择" clearable @change="searchModelName">
+            <el-option
+                    v-for="item in modelNameList"
+                    :key="item.model"
+                    :label="item.model"
+                    :value="item.model">
+            </el-option>
+        </el-select>
+        <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange" height="450">
+
+            <el-table-column prop="partS" label="物料编号" width="250"></el-table-column>
+            <el-table-column prop="partSName" label="物料名称" width="250"></el-table-column>
+            <el-table-column prop="model" label="所属规格型号"></el-table-column>
         </el-table>
         <span slot="footer" class="dialog-footer">
     <el-button @click="partCancel">取 消</el-button>
@@ -332,8 +342,8 @@
         <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChange" height="450">
             <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
             <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
-            <el-table-column prop=customerName" label="客户名称"></el-table-column>
-            <el-table-column prop="partNo" label="物料编号" width="150"></el-table-column>
+            <el-table-column prop="customerName" label="客户名称"></el-table-column>
+            <el-table-column prop="partNo" label=" 物料编号" width="150"></el-table-column>
             <el-table-column prop="partName" label="物料名称" width="160"></el-table-column>
             <el-table-column prop="number" label="需求数量" width="100"></el-table-column>
             <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
@@ -361,11 +371,18 @@ data: {
 
 
     recordDataList:[],//排程记录
+
     partDataList: [],//选择物料
+    modelNameList:[],//所属产品型号
+    modelname:'',//选择器显示
+
+
     equipmentDataList:[],//设备信息查询
-    tableData:[],//生产排程表
     partNameList:[],//所属零件名称表
     partname:'',//选择器显示
+
+    tableData:[],//生产排程表
+
 
     newScheduleRecord:{
         productionNumber:'',//生产任务单号
@@ -579,12 +596,21 @@ data: {
                 method:'GET'
             }).then(res => {
                 this.partDataList = res.data.data;
-            })
-
-            // axios.get("/aps").then((res)=>{
-            //     this.dataList = res.data.data;
-            //     // console.log(res);
-            // });
+            }),
+                axios({
+                    url:"http://localhost:8080/modelNameList",
+                    method:'GET'
+                }).then(res => {
+                    this.modelNameList = res.data.data;
+                })
+        },
+        searchModelName(){
+            param = "?modelname="+this.modelname;
+            if(this.modelname != ''){
+                axios.get('http://localhost:8080/searchModelNameList/'+param).then(res => {
+                    this.partDataList = res.data})
+            }
+            else{this.getPartAll()}
         },
 
         partCancel(){
@@ -595,10 +621,12 @@ data: {
         },
         partConfirm() {
             this.dialogPartVisible = false;
-            this.newScheduleRecord.partNo = this.currentRow.partno;
-            this.newScheduleRecord.partName = this.currentRow.partname;
+            this.newScheduleRecord.partNo = this.currentRow.partS;
+            this.newScheduleRecord.partName = this.currentRow.partSName;
 
         },
+
+
 
         //设备信息查询----------------------------------------------------------------
         getEquipmentAll(){
