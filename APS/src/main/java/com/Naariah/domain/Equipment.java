@@ -17,6 +17,8 @@ public class Equipment {
     private double level;
     private double processorder;
     private String partname;
+    private String starttime;
+    private String endtime;
     private String remark;
 
 }

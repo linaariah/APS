@@ -403,6 +403,7 @@ data: {
         this.getRecordAll();
         this.getEquipmentAll();
         this.getPartAll();
+        this.getAllEquip();
 
     },
     mounted(){
@@ -677,6 +678,43 @@ data: {
         },
 
         //生产排程计算
+
+        //A：转子轴+转子+转子轴承组件 、B：前端盖、C：后端盖、 D：机座、E：定子、F：机座定子、G：三相异步电机
+
+        getAllEquip(){
+            axios({
+                url:"http://localhost:8080/get31",
+                method:'GET'
+            }).then(res => {
+               var A = res.data;
+                for (var i = 0 ;i<A.length;i++)
+                {
+                    var equipmentA = new Array();
+                    equipmentA[i]=A[i]
+                    equipmentA[i].starttime = '08:30'
+                    // console.log("equipmentA第",i+1,"个设备参数",equipmentA[i])
+                }
+            })
+
+            axios({
+                url:"http://localhost:8080/get32",
+                method:'GET'
+            }).then(res => {
+                var B = res.data;
+                for (var i = 0 ;i<B.length;i++)
+                {
+                    var equipmentB = new Array();
+                    equipmentB[i]=B[i]
+                    equipmentB[i].starttime = '08:30'
+                    console.log("equipmentB第",i+1,"个设备参数",equipmentB[i])
+                }
+            })
+
+        },
+
+
+
+
         schedule() {
 
 
@@ -714,11 +752,8 @@ data: {
                     });
 
 
-
-
-
-                var jsonData = this.equipmentDataList;
-                console.log("后台json数据", jsonData);
+                // var jsonData = this.equipmentDataList;
+                // console.log("后台json数据", jsonData);
 
 
             }
