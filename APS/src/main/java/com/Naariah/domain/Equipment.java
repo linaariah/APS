@@ -14,7 +14,8 @@ public class Equipment {
     private String stationid;
     private String processname;
     private Integer ct;
-    private Integer processorder;
+    private double level;
+    private double processorder;
     private String partname;
     private String remark;
 

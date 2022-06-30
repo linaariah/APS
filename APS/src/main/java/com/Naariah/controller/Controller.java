@@ -54,7 +54,7 @@ public class Controller {
     @GetMapping("/equipmentList")
     public Result getEquipmentAll(){
         QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("equipid","equipname","workshopid","lineid","stationid","processname","ct","processorder","partname");
+        queryWrapper.select("equipid","equipname","workshopid","lineid","stationid","processname","ct","level","processorder","partname");
         List<Equipment> equipmentList = equipmentDao.selectList(queryWrapper);
         Integer code = equipmentList != null ? Code.GET_OK : Code.GET_ERR;
         String msg = equipmentList != null ? "" : "数据查询失败，请重试！";
