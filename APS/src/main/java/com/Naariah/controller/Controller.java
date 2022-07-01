@@ -80,61 +80,71 @@ public class Controller {
     };
 
     //                                     生产排程计算用
-    @GetMapping("/get31")
-    public List<Equipment> get31 () {
+    @GetMapping("/getEquip")
+    public List<Equipment> getEquip () {
         QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
-        wrapper.eq("level",3.1);
-        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+        List<Equipment> equipmentList = equipmentDao.selectList(null);
         return equipmentList;
     };
 
-    @GetMapping("/get32")
-    public List<Equipment> get32 () {
-        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
-        wrapper.eq("level",3.2);
-        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
-        return equipmentList;
-    };
 
-    @GetMapping("/get33")
-    public List<Equipment> get33 () {
-        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
-        wrapper.eq("level",3.3);
-        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
-        return equipmentList;
-    };
 
-    @GetMapping("/get34")
-    public List<Equipment> get34 () {
-        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
-        wrapper.eq("level",3.4);
-        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
-        return equipmentList;
-    };
 
-    @GetMapping("/get35")
-    public List<Equipment> get35 () {
-        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
-        wrapper.eq("level",3.5);
-        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
-        return equipmentList;
-    };
-
-    @GetMapping("/get21")
-    public List<Equipment> get21 () {
-        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
-        wrapper.eq("level",2.1);
-        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
-        return equipmentList;
-    };
-
-    @GetMapping("/get11")
-    public List<Equipment> get11 () {
-        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
-        wrapper.eq("level",1.1);
-        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
-        return equipmentList;
-    };
+//    @GetMapping("/get31")
+//    public List<Equipment> get31 () {
+//        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+//        wrapper.eq("level",3.1);
+//        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+//        return equipmentList;
+//    };
+//
+//    @GetMapping("/get32")
+//    public List<Equipment> get32 () {
+//        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+//        wrapper.eq("level",3.2);
+//        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+//        return equipmentList;
+//    };
+//
+//    @GetMapping("/get33")
+//    public List<Equipment> get33 () {
+//        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+//        wrapper.eq("level",3.3);
+//        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+//        return equipmentList;
+//    };
+//
+//    @GetMapping("/get34")
+//    public List<Equipment> get34 () {
+//        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+//        wrapper.eq("level",3.4);
+//        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+//        return equipmentList;
+//    };
+//
+//    @GetMapping("/get35")
+//    public List<Equipment> get35 () {
+//        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+//        wrapper.eq("level",3.5);
+//        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+//        return equipmentList;
+//    };
+//
+//    @GetMapping("/get21")
+//    public List<Equipment> get21 () {
+//        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+//        wrapper.eq("level",2.1);
+//        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+//        return equipmentList;
+//    };
+//
+//    @GetMapping("/get11")
+//    public List<Equipment> get11 () {
+//        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+//        wrapper.eq("level",1.1);
+//        List<Equipment> equipmentList = equipmentDao.selectList(wrapper);
+//        return equipmentList;
+//    };
 
 
 
