@@ -14,6 +14,7 @@ public class Record {
     private String partNo;
     private String partName;
     private Integer number;
+    private String date;
     private String createTime;
 
 }

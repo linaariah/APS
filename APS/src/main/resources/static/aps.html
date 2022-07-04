@@ -25,7 +25,7 @@
     /*center class="roll-dialog"*/
 
     .customWidth {
-        width: 1000px;
+        width: 1100px;
     }
 
     .ecustomWidth {
@@ -168,8 +168,11 @@
                                     <el-input-number :min="1" :max="1000" v-model="newScheduleRecord.number"
                                         :step="100"></el-input-number>
 
+                                        
+                                    <span style='color: #909399;font-weight:bolder;margin-left: 10px'>排产日期：</span>
+                                    <el-date-picker v-model="newScheduleRecord.date" type="date" placeholder="选择日期" format="yyyy 年 MM 月 dd 日" value-format="yyyy-MM-dd"></el-date-picker>                                     
 
-                                    <el-button @click="resetInput" style="margin-left: 60px">重置输入框</el-button>
+                                    <el-button @click="resetInput" style="margin-left: 37px">重置输入框</el-button>
 
                                     <el-button type="info" plain @click="dialogEquipmentVisible = true">设备信息查询
                                     </el-button>
@@ -217,31 +220,24 @@
                                         </el-table-column>
                                         <el-table-column label="生产任务单号" width="120">
                                         </el-table-column>
-                                        <el-table-column label="订单编号" width="120">
+                                        <el-table-column label="设备编号" width="120">
                                         </el-table-column>
-                                        <!--                                    <el-table-column-->
-                                        <!--                                            label="客户名称"-->
-                                        <!--                                            width="120">-->
-                                        <!--                                    </el-table-column>-->
-                                        <el-table-column label="设备编号" width="100">
+                                        
+    
+                                        <el-table-column label="设备名称" width="100">
                                         </el-table-column>
 
-                                        <el-table-column label="物料编号" width="100">
+                                        <el-table-column label="开始加工时间" width="160">
                                         </el-table-column>
-                                        <el-table-column label="物料名称" width="100">
+                                        <el-table-column label="结束加工时间" width="160">
                                         </el-table-column>
-                                        <el-table-column label="规格型号" width="100">
+                                        <el-table-column label="排产日期" width="150">
                                         </el-table-column>
-                                        <el-table-column label="节拍/s" width="100">
+                                        <el-table-column label="需求数量" width="100">
                                         </el-table-column>
-                                        <el-table-column label="工序名称" width="100">
+                                        <el-table-column label="加工型号" width="100">
                                         </el-table-column>
-                                        <el-table-column label="加工数量">
-                                        </el-table-column>
-                                        <el-table-column label="计划用时">
-                                        </el-table-column>
-                                        <el-table-column label="计划日期">
-                                        </el-table-column>
+                        
 
 
                                     </el-table>
@@ -320,6 +316,7 @@
                 <el-table-column prop="partNo" label=" 物料编号" width="150"></el-table-column>
                 <el-table-column prop="partName" label="物料名称" width="160"></el-table-column>
                 <el-table-column prop="number" label="需求数量" width="100"></el-table-column>
+                <el-table-column prop="date" label="排产日期" width="100"></el-table-column>
                 <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
             </el-table>
             <span slot="footer" class="dialog-footer">
@@ -365,7 +362,20 @@
                 partNo: '',//物料编号
                 partName: '',//物料名称
                 number: 100, //需求数量
+                date:'',//排产日期
                 createTime: '',//创建时间
+            },
+//对应详细表格
+            RecordDetail:{
+                productionNumber: '',//生产任务单号
+                equipid:'',//设备id
+                equipname:'',//设备名称
+                startTime: '',//开始时间
+                endTime: '',//结束时间
+                date:'',//排产日期
+                number: '', //需求数量
+                model:'',//加工型号
+            
             }
 
 
@@ -580,7 +590,7 @@
             },
             searchModelName() {
                 param = "?modelname=" + this.modelname;
-                if (this.modelname != '') {
+                if (this.modelname != '') {   
                     axios.get('http://localhost:8080/searchModelNameList/' + param).then(res => {
                         this.partDataList = res.data
                     })
@@ -655,6 +665,7 @@
                 this.newScheduleRecord.partNo = '';
                 this.newScheduleRecord.partName = '';
                 this.newScheduleRecord.number = 100;
+                this.newScheduleRecord.date = '';
             },
 
             //设备信息隐藏
@@ -675,6 +686,9 @@
                 else if (this.newScheduleRecord.partNo == '') {
                     this.$message.error('请选择物料');
                 }
+                else if (this.newScheduleRecord.date == '') {
+                    this.$message.error('请选择排产日期');
+                }
                 else {
 
                     console.log('生产任务单号:', this.newScheduleRecord.productionNumber);
@@ -683,7 +697,8 @@
                     console.log('物料编号:', this.newScheduleRecord.partNo);
                     console.log('物料名称:', this.newScheduleRecord.partName);
                     console.log('需求数量:', this.newScheduleRecord.number);
-                    console.log('当前时间:', this.newScheduleRecord.createTime);
+                    console.log('排产日期:', this.newScheduleRecord.date);
+                    console.log('创建时间:', this.newScheduleRecord.createTime);
 
                     //提交表单
                     axios({
@@ -703,24 +718,34 @@
                         });
 
 //-------------------------------------------------------------------------------------------------------------
+                            let time1 = this.newScheduleRecord.date
+                            let time2 = '08:30:00'
+                            var time3 = time1 + ' ' + time2
+                            console.log(time3)
+                            time3 = time3.replace(/-/g,"/")
+                            var time4 = new Date(time3)
+                            console.log(time4)
+
+
                     for (var i = 0; i < Equip.length; i++) {
                         if(Equip[i].level === 3.1 || Equip[i].level===3.2 || Equip[i].level===3.3 || Equip[i].level===3.4 ||Equip[i].level===3.5)
                         {
-                        Equip[i].starttime = '08:30'  
+                           
+                        // Equip[i].starttime = time3 
                         }
                         else{
                             Equip[i].starttime = '' 
                         }
-                        console.log(Equip[i])
+                        // console.log(Equip[i])
                         
-                    } //fo r
+                    } //for
 
                 } //else
 
 
             },
 
-
+  
 
 
 
