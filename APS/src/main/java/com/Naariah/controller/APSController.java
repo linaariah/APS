@@ -2,9 +2,11 @@ package com.Naariah.controller;
 import com.Naariah.dao.EquipmentDao;
 import com.Naariah.dao.PartDao;
 import com.Naariah.dao.RecordDao;
+import com.Naariah.dao.RecordDetailDao;
 import com.Naariah.domain.Equipment;
 import com.Naariah.domain.PartBom;
 import com.Naariah.domain.Record;
+import com.Naariah.domain.RecordDetail;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,6 +191,7 @@ public class APSController {
         }
         return new Result(flag ? Code.SAVE_OK:Code.SAVE_ERR,flag);
     }
+
 //    public int addRecord(@RequestBody Record record) {
 //        return recordDao.insert(record);
 //    }
@@ -220,10 +223,46 @@ public class APSController {
         return  new Result(code,recordList,msg);
     };
 
+    //添加详细记录------------------------------------------
+    @Autowired
+    private RecordDetailDao recordDetailDao;
+    @PostMapping("/addRecordDetail")
+    public Result addRecordDetail(@RequestBody RecordDetail recordDetail){
+        int result = recordDetailDao.insert(recordDetail);
+        boolean flag;
+        if (result == 1){
+            flag = true;
+        }
+        else{
+            flag=false;
+        }
+        return new Result(flag ? Code.SAVE_OK:Code.SAVE_ERR,flag);
+    };
+    //删除详细记录------------------------------------------
 
+    @PostMapping("/deleteRecordDetail")
+    public void deleteRecordDetail(@RequestBody Record record){
+        QueryWrapper queryWrapper = new QueryWrapper<Record>();
+        queryWrapper.eq("production_number",record.getProductionNumber());
+        recordDetailDao.delete(queryWrapper);
 
-
-
-
+//        int result =
+//        boolean flag;
+//        if (result == 1){
+//            flag = true;
+//        }
+//        else{
+//            flag=false;
+//        }
+//        return new Result(flag ? Code.DELETE_OK:Code.DELETE_ERR,flag);
+    };
+    //查询详细记录
+    @GetMapping("/recordDetailList")
+    public Result getRecordDetailAll(){
+        List<RecordDetail> recordDetailList = recordDetailDao.selectList(null);
+        Integer code = recordDetailList != null ? Code.GET_OK : Code.GET_ERR;
+        String msg =recordDetailList != null ? "" : "数据查询失败，请重试！";
+        return  new Result(code,recordDetailList,msg);
+    };
 
 }

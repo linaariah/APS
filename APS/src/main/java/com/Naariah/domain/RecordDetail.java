@@ -1,11 +1,9 @@
 package com.Naariah.domain;
 
-
 import lombok.Data;
 
 @Data
 public class RecordDetail {
-
         private String productionNumber;
         private String equipid;
         private String equipname;

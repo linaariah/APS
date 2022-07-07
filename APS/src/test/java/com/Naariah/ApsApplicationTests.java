@@ -2,6 +2,7 @@ package com.Naariah;
 
 import com.Naariah.dao.EquipmentDao;
 import com.Naariah.dao.RecordDao;
+import com.Naariah.dao.RecordDetailDao;
 import com.Naariah.domain.Equipment;
 import com.Naariah.domain.Record;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -58,8 +59,14 @@ class ApsApplicationTests {
     void deleteByid(){
       recordDao.deleteById(002);
 
-  }
+  };
 
+    @Autowired
+    private RecordDetailDao recordDetailDao;
+    @Test
+    void deleteDetail(){
+        recordDetailDao.deleteById("E00001");
+    }
 
 
 

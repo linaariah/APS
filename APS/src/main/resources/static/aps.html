@@ -15,6 +15,7 @@
     body {
         background-image: url("./img/BP3.png");
         opacity: 0.9;
+        margin: 0;
     }
 
     /*.roll-dialog .el-dialog__body {*/
@@ -122,135 +123,124 @@
                 <el-row>
                     <el-col :span="24">
                         <div class="grid-content bg-purple" style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-						  background-color: #ffffff;">
+        						  background-color: #ffffff;">
                             <div style='padding:10px'>
                                 <div style='padding:10px 10px 10px 10px'>
-
+        
                                     <!--生产任务单号-->
                                     <span style='color: #909399;font-weight:bolder;'>生产任务单号：</span>
                                     <el-input placeholder="请输入内容" style='width:220px;margin:0px 10px 10px 0px;'
-                                        v-model="newScheduleRecord.productionNumber">
-
+                                        v-model.trim="newScheduleRecord.productionNumber">
+        
                                         <!--排程记录-->
-                                        <el-button slot="append" icon="el-icon-search"
-                                            @click="dialogRecordVisible = true">排程记录</el-button>
+                                        <el-button slot="append" icon="el-icon-search" @click="dialogRecordVisible = true">排程记录
+                                        </el-button>
                                     </el-input>
-
+        
                                     <!--订单编号-->
                                     <span style='color: #909399;font-weight:bolder;'>订单编号：</span>
                                     <el-input placeholder="可以为空" style='width:90px;margin:0px 10px 10px 0px;'
-                                        v-model="newScheduleRecord.orderNumber"></el-input>
-
+                                        v-model.trim="newScheduleRecord.orderNumber"></el-input>
+        
                                     <!--客户名称-->
                                     <span style='color: #909399;font-weight:bolder;'>客户名称：</span>
                                     <el-input placeholder="可以为空" style='width:90px;margin:0px 10px 10px 0px;'
-                                        v-model="newScheduleRecord.customerName"></el-input>
-
+                                        v-model.trim="newScheduleRecord.customerName"></el-input>
+        
                                     <!--物料编号-->
                                     <span style='color: #909399;font-weight:bolder;'>物料编号：</span>
                                     <el-input :disabled="true" placeholder="需生产排程的物料"
-                                        style='width:266px;margin:0px 10px 10px 0px;'
-                                        v-bind:value="newScheduleRecord.partNo">
-                                        <el-button slot="append" icon="el-icon-search"
-                                            @click="dialogPartVisible = true">
+                                        style='width:266px;margin:0px 10px 10px 0px;' v-bind:value="newScheduleRecord.partNo">
+                                        <el-button slot="append" icon="el-icon-search" @click="dialogPartVisible = true">
                                             选择物料
                                         </el-button>
                                     </el-input>
-
+        
                                     <!--物料名称-->
                                     <span style='color: #909399;font-weight:bolder;'>物料名称：</span>
                                     <el-input :disabled="true" style='width:190px;margin:0px 10px 10px 0px;'
                                         v-bind:value="newScheduleRecord.partName"></el-input>
                                     </br>
-
+        
                                     <!--需求数量-->
                                     <span style='color: #909399;font-weight:bolder;'>需求数量：</span>
-                                    <el-input-number :min="1" :max="1000" v-model="newScheduleRecord.number"
-                                        :step="100"></el-input-number>
-
-                                        
+                                    <el-input-number :min="1" :max="1000" v-model="newScheduleRecord.number" :step="100">
+                                    </el-input-number>
+        
+        
                                     <span style='color: #909399;font-weight:bolder;margin-left: 10px'>排产日期：</span>
-                                    <el-date-picker v-model="newScheduleRecord.date" type="date" placeholder="选择日期" format="yyyy 年 MM 月 dd 日" value-format="yyyy-MM-dd"></el-date-picker>                                     
-
+                                    <el-date-picker v-model="newScheduleRecord.date" type="date" placeholder="选择日期"
+                                        format="yyyy 年 MM 月 dd 日" value-format="yyyy-MM-dd"></el-date-picker>
+        
                                     <el-button @click="resetInput" style="margin-left: 37px">重置输入框</el-button>
-
+        
                                     <el-button type="info" plain @click="dialogEquipmentVisible = true">设备信息查询
                                     </el-button>
-
+        
                                     <el-button type="primary" @click="schedule">生产排程计算</el-button>
-
-
-
-
-
                                 </div>
                             </div>
                         </div>
                     </el-col>
                 </el-row>
-
+        
+                <!--详细表格-->
+                <el-row>
+                    <el-col :span="24">
+                        <div class="grid-content bg-purple" style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+                          background-color: #ffffff;">
+                            <div style='padding:10px'>
+                                <div style='padding:10px 10px 10px 10px'>
+                                    <div style="margin-bottom: 30px;">
+                                        <span style='color: #909399;font-weight:bolder'>生产排程表：</span>
+                                    </div>
+                                    <el-table :data="recordDetailDataList" border style="width: 100%" height="450"
+                                        v-loading="loading">
+                                        <el-table-column label="序号" width="150" type="index"></el-table-column>
+                                        <el-table-column prop="productionNumber" label="生产任务单号" width="170"></el-table-column>
+                                        <el-table-column prop="equipid" label="设备编号" width="160"></el-table-column>
+                                        <el-table-column prop="equipname" label="设备名称" width="170"></el-table-column>
+                                        <el-table-column prop="starttime" label="开始加工时间" width="180"></el-table-column>
+                                        <el-table-column prop="endtime" label="结束加工时间" width="180"></el-table-column>
+                                        <!-- <el-table-column prop="production_number" label="排产日期" width="150"></el-table-column> -->
+                                        <el-table-column prop="number" label="需求数量" width="120"></el-table-column>
+                                        <el-table-column prop="model" label="加工型号"></el-table-column>
+        
+                                    </el-table>
+        
+        
+                                </div>
+                            </div>
+                        </div>
+                    </el-col>
+                </el-row>
+        
+        
+        
                 <!--甘特图-->
                 <el-row>
                     <el-col :span="24">
                         <div class="grid-content bg-purple" style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-						  background-color: #ffffff;">
+        						  background-color: #ffffff;">
                             <div style='padding:10px'>
                                 <div style='padding:10px 10px 10px 10px'>
                                     <span style='color: #909399;font-weight:bolder;'>生产排程甘特图：</span>
                                     <div id="main" style="width: 1100px;height:400px;">
-
-
+        
+        
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </el-col>
                 </el-row>
-
-                <!--详细表格-->
-                <el-row>
-                    <el-col :span="24">
-                        <div class="grid-content bg-purple" style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-						  background-color: #ffffff;">
-                            <div style='padding:10px'>
-                                <div style='padding:10px 10px 10px 10px'>
-                                    <span style='color: #909399;font-weight:bolder'>生产排程表：</span>
-                                    <el-table :data="tableData" border style="width: 100%">
-                                        <el-table-column label="序号" width="100">
-                                        </el-table-column>
-                                        <el-table-column label="生产任务单号" width="120">
-                                        </el-table-column>
-                                        <el-table-column label="设备编号" width="120">
-                                        </el-table-column>
-                                        
-    
-                                        <el-table-column label="设备名称" width="100">
-                                        </el-table-column>
-
-                                        <el-table-column label="开始加工时间" width="160">
-                                        </el-table-column>
-                                        <el-table-column label="结束加工时间" width="160">
-                                        </el-table-column>
-                                        <el-table-column label="排产日期" width="150">
-                                        </el-table-column>
-                                        <el-table-column label="需求数量" width="100">
-                                        </el-table-column>
-                                        <el-table-column label="加工型号" width="100">
-                                        </el-table-column>
-                        
-
-
-                                    </el-table>
-
-
-                                </div>
-                            </div>
-                        </div>
-                    </el-col>
-                </el-row>
-
-
-
+        
+        
+        
+        
+        
+        
+        
             </el-main>
         </el-container>
 
@@ -263,7 +253,7 @@
                 <el-option v-for="item in modelNameList" :key="item.model" :label="item.model" :value="item.model">
                 </el-option>
             </el-select>
-            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange" height="190">
+            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange" height="200">
 
                 <el-table-column prop="partS" label="物料编号" width="250"></el-table-column>
                 <el-table-column prop="partSName" label="物料名称" width="250"></el-table-column>
@@ -321,7 +311,7 @@
 
                 <el-button type="danger" plain @click="deleteRecord">删除</el-button>
                 <el-button @click="recordCancel">取 消</el-button>
-                <el-button type="primary" @click="recordConfirm">确 定</el-button>
+                <el-button type="primary" @click="recordConfirm">查 询</el-button>
             </span>
         </el-dialog>
 
@@ -337,9 +327,11 @@
             dialogRecordVisible: false,
             dialogPartVisible: false,
             dialogEquipmentVisible: false,
-
+            loading: true,
 
             recordDataList: [],//排程记录
+            
+            recordDetailDataList: [],//对应详细表格
 
             partDataList: [],//选择物料
             modelNameList: [],//所属产品型号
@@ -363,8 +355,9 @@
                 date:'',//排产日期
                 createTime: '',//创建时间
             },
-            //对应详细表格
-            RecordDetail: [],
+
+
+
 
           
 
@@ -378,135 +371,138 @@
             this.getRecordAll();
             this.getEquipmentAll();
             this.getPartAll();
+            this.getRecordDetailAll();
+        setTimeout(() => {this.loading=false}, 1500);
 
         },
-        mounted() {
-            var myCharts = echarts.init(document.getElementById('main'));
-            var option = {
+        // mounted() {
+        //     var myCharts = echarts.init(document.getElementById('main'));
+        //     var option = {
 
-                legend: {
-                    y: 'bottom',
-                    data: ['计划时间', '实际时间']  //修改的地方1
+        //         legend: {
+        //             y: 'bottom',
+        //             data: ['计划时间', '实际时间']  //修改的地方1
 
-                },
-                grid: {
-                    containLabel: true,
-                    left: 20
-                },
-                xAxis: {
-                    type: 'time'
-                },
+        //         },
+        //         grid: {
+        //             containLabel: true,
+        //             left: 20
+        //         },
+        //         xAxis: {
+        //             type: 'time'
+        //         },
 
-                yAxis: {
+        //         yAxis: {
 
-                    data: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7']
+        //             data: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7']
 
-                },
-                tooltip: {
-                    trigger: 'axis',
-                    formatter: function (params) {
-                        var res = params[0].name + "</br>"
-                        var date0 = params[0].data;
-                        var date1 = params[1].data;
-                        var date2 = params[2].data;
-                        var date3 = params[3].data;
-                        date0 = date0.getFullYear() + "-" + (date0.getMonth() + 1) + "-" + date0.getDate();
-                        date1 = date1.getFullYear() + "-" + (date1.getMonth() + 1) + "-" + date1.getDate();
-                        date2 = date2.getFullYear() + "-" + (date2.getMonth() + 1) + "-" + date2.getDate();
-                        date3 = date3.getFullYear() + "-" + (date3.getMonth() + 1) + "-" + date3.getDate();
-                        res += params[0].seriesName + "~" + params[1].seriesName + ":</br>" + date0 + "~" + date1 + "</br>"
-                        res += params[2].seriesName + "~" + params[3].seriesName + ":</br>" + date2 + "~" + date3 + "</br>"
-                        console.log(params[0]);
-                        return res;
-                    }
-                },
-                series: [
+        //         },
+        //         tooltip: {
+        //             trigger: 'axis',
+        //             formatter: function (params) {
+        //                 var res = params[0].name + "</br>"
+        //                 var date0 = params[0].data;
+        //                 var date1 = params[1].data;
+        //                 var date2 = params[2].data;
+        //                 var date3 = params[3].data;
+        //                 date0 = date0.getFullYear() + "-" + (date0.getMonth() + 1) + "-" + date0.getDate();
+        //                 date1 = date1.getFullYear() + "-" + (date1.getMonth() + 1) + "-" + date1.getDate();
+        //                 date2 = date2.getFullYear() + "-" + (date2.getMonth() + 1) + "-" + date2.getDate();
+        //                 date3 = date3.getFullYear() + "-" + (date3.getMonth() + 1) + "-" + date3.getDate();
+        //                 res += params[0].seriesName + "~" + params[1].seriesName + ":</br>" + date0 + "~" + date1 + "</br>"
+        //                 res += params[2].seriesName + "~" + params[3].seriesName + ":</br>" + date2 + "~" + date3 + "</br>"
+        //                 console.log(params[0]);
+        //                 return res;
+        //             }
+        //         },
+        //         series: [
 
-                    {
-                        name: '计划开始时间',
-                        type: 'bar',
-                        stack: 'test1',
-                        itemStyle: {
-                            normal: {
-                                color: 'rgba(0,0,0,0)'
-                            }
-                        },
-                        data: [
-                            new Date("2022/09/2"),
-                            new Date("2022/09/15"),
-                            new Date("2022/09/15"),
-                            new Date("2022/10/03"),
-                            new Date("2022/10/04"),
-                            new Date("2022/10/05"),
-                            new Date("2022/10/06")
-                        ]
-                    },
-                    {
-                        name: '计划时间',
-                        type: 'bar',
-                        stack: 'test1',
-                        //修改地方2
-                        itemStyle: {
-                            normal: {
-                                color: '#F98563'
-                            }
-                        },
-                        data: [
-                            new Date("2022/09/12"),
-                            new Date("2022/09/20"),
-                            new Date("2022/09/25"),
-                            new Date("2022/10/05"),
-                            new Date("2022/10/07"),
-                            new Date("2022/10/09"),
-                            new Date("2022/10/12")
-                        ]
-                    },
-                    {
-                        name: '实际开始时间',
-                        type: 'bar',
-                        stack: 'test2',
-                        itemStyle: {
-                            normal: {
-                                color: 'rgba(0,0,0,0)'
-                            }
-                        },
-                        data: [
-                            new Date("2022/09/2"),
-                            new Date("2022/09/15"),
-                            new Date("2022/09/15"),
-                            new Date("2022/10/03"),
-                            new Date("2022/10/04"),
-                            new Date("2022/10/05"),
-                            new Date("2022/10/06")
-                        ]
-                    },
-                    {
-                        name: '实际时间',
-                        type: 'bar',
-                        stack: 'test2',
-                        //修改地方3
-                        itemStyle: {
-                            normal: {
-                                color: '#A2E068'
-                            }
-                        },
-                        data: [
-                            new Date("2022/09/6"),
-                            new Date("2022/09/20"),
-                            new Date("2022/09/27"),
-                            new Date("2022/10/11"),
-                            new Date("2022/10/16"),
-                            new Date("2022/10/18"),
-                            new Date("2022/10/17")
-                        ]
-                    }
-                ]
-            };
-            myCharts.setOption(option);
+        //             {
+        //                 name: '计划开始时间',
+        //                 type: 'bar',
+        //                 stack: 'test1',
+        //                 itemStyle: {
+        //                     normal: {
+        //                         color: 'rgba(0,0,0,0)'
+        //                     }
+        //                 },
+        //                 data: [
+        //                     new Date("2022/09/2"),
+        //                     new Date("2022/09/15"),
+        //                     new Date("2022/09/15"),
+        //                     new Date("2022/10/03"),
+        //                     new Date("2022/10/04"),
+        //                     new Date("2022/10/05"),
+        //                     new Date("2022/10/06")
+        //                 ]
+        //             },
+        //             {
+        //                 name: '计划时间',
+        //                 type: 'bar',
+        //                 stack: 'test1',
+        //                 //修改地方2
+        //                 itemStyle: {
+        //                     normal: {
+        //                         color: '#F98563'
+        //                     }
+        //                 },
+        //                 data: [
+        //                     new Date("2022/09/12"),
+        //                     new Date("2022/09/20"),
+        //                     new Date("2022/09/25"),
+        //                     new Date("2022/10/05"),
+        //                     new Date("2022/10/07"),
+        //                     new Date("2022/10/09"),
+        //                     new Date("2022/10/12")
+        //                 ]
+        //             },
+        //             {
+        //                 name: '实际开始时间',
+        //                 type: 'bar',
+        //                 stack: 'test2',
+        //                 itemStyle: {
+        //                     normal: {
+        //                         color: 'rgba(0,0,0,0)'
+        //                     }
+        //                 },
+        //                 data: [
+        //                     new Date("2022/09/2"),
+        //                     new Date("2022/09/15"),
+        //                     new Date("2022/09/15"),
+        //                     new Date("2022/10/03"),
+        //                     new Date("2022/10/04"),
+        //                     new Date("2022/10/05"),
+        //                     new Date("2022/10/06")
+        //                 ]
+        //             },
+        //             {
+        //                 name: '实际时间',
+        //                 type: 'bar',
+        //                 stack: 'test2',
+        //                 //修改地方3
+        //                 itemStyle: {
+        //                     normal: {
+        //                         color: '#A2E068'
+        //                     }
+        //                 },
+        //                 data: [
+        //                     new Date("2022/09/6"),
+        //                     new Date("2022/09/20"),
+        //                     new Date("2022/09/27"),
+        //                     new Date("2022/10/11"),
+        //                     new Date("2022/10/16"),
+        //                     new Date("2022/10/18"),
+        //                     new Date("2022/10/17")
+        //                 ]
+        //             }
+        //         ]
+        //     };
+        //     myCharts.setOption(option);
 
-        },
+        // },
 
         methods: { 
+       
             //获取当前时间
             dateFormat() {
                 // 为小于10的数字补零
@@ -518,7 +514,9 @@
                 let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
                 let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
                 var createTime = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+                var today = year + "-" + month + "-" + day
                 this.newScheduleRecord.createTime = createTime;
+                this.newScheduleRecord.date=today;
             },
 
             //时间戳改字符串函数
@@ -565,7 +563,20 @@
                 })
 
             },
-            //  记录弹窗确认与取消
+
+            // 获取详细记录
+            getRecordDetailAll(){
+                axios({
+                    url: "http://localhost:8080//recordDetailList",
+                    method: 'GET'
+                }).then(res => {
+                    this.recordDetailDataList = res.data.data;
+                })
+                
+
+            },
+
+            //  记录弹窗查询与取消
             recordConfirm() {
                 this.dialogRecordVisible = false;
 
@@ -582,15 +593,29 @@
                     method: 'POST',
                     data: this.newScheduleRecord,
                 }).then(res => {
-                    if (res.data.code = 20021) {
-
-                        this.$message.success('删除成功');
-
+                    if (res.data.code = 20021) 
+                    {
+                        //删除成功标语
+                        this.$message({
+                            message: '删除成功',
+                            type: 'success'
+                        });
                     }
 
                 }).finally(() => {
                     this.getRecordAll();
+                    
                 })
+
+                axios({
+                            url: 'http://localhost:8080/deleteRecordDetail',
+                            method: 'POST',
+                            data: this.newScheduleRecord,
+                        }).then(res => {
+                        }).finally(()=>{
+                            this.getRecordDetailAll();
+                        })
+               
 
             },
             //---------------------------------------------------------------------------------------------
@@ -696,7 +721,8 @@
 
 
             schedule() {
-
+                // return new Promise((resolve,reject) =>{
+                    
 
                 if (this.newScheduleRecord.productionNumber == '') {
                     this.$message.error('请输入生产任务单号');
@@ -708,7 +734,7 @@
                     this.$message.error('请选择排产日期');
                 }
                 else {
-
+                    
                     console.log('生产任务单号:', this.newScheduleRecord.productionNumber);
                     console.log('订单编号:', this.newScheduleRecord.orderNumber);
                     console.log('客户名称:', this.newScheduleRecord.customerName);
@@ -718,56 +744,25 @@
                     console.log('排产日期:', this.newScheduleRecord.date);
                     console.log('创建时间:', this.newScheduleRecord.createTime);
 
-
-
-
-
-
-
-
-
-
-
                     //提交表单
                     axios({
                         url: 'http://localhost:8080/addRecord',
                         method: 'POST',
                         data: this.newScheduleRecord,
                     }).then(res => {
+
                         if (res.data.code == 20011) {
-                            // this.resetInput()
+                            this.$message('计算中，请稍后……');
 
+                    //当日首计划逻辑-------------------------------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-                        }
-                        else {
-                            this.$message.error('系统错误请稍后再试！');
-                        }
-                    })
-                        .finally(() => {
-                            this.getRecordAll();
-                        });
-
-//-------------------------------------------------------------------------------------------------------------
-
-
-                    var timeEndList1 = []
-                    var timeEndList2 = []
-                    var timeEndList3 = []
-                    var timeEndList4 = []
-                    var timeEndList5 = []
-                    var timeEndList6 = []
-                    var timeEndList7 = []
+                    var timeEndList1 = [] //3.5级
+                    var timeEndList2 = [] //3.4级
+                    var timeEndList3 = [] //3.3级
+                    var timeEndList4 = [] //3.2级
+                    var timeEndList5 = [] //3.1级
+                    var timeEndList6 = [] //2.1级
+                    var timeEndList7 = [] //1.1级
 
                     for (var i = 0; i < Equip.length; i++) {
 
@@ -1385,56 +1380,224 @@
 
                         }
 
+                        else if (Equip[i].level === 2.1) //2.1级设备加工时间计算
+                        {
 
-                        // else if (Equip[i].level === 2.1) {
+                            if (Equip[i].processorder === 1) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
 
-                        //     //waiting  to think......
+                                //时间比较3.1、3.2
+                                let compareArr=[Date.parse(new Date(timeEndList4[timeEndList4.length-1])),Date.parse(new Date(timeEndList5[timeEndList5.length-1]))]
+                                
+                                // console.log("时间最大值",this.timeCalculate(Math.max.apply(null,compareArr)))
 
-                        // }
+                                // let compare1 = Date.parse(new Date(timeEndList4[timeEndList4.length-1]))
+                                // let compare2 = Date.parse(new Date(timeEndList5[timeEndList5.length-1]))
 
+                                let timeStart3 = this.timeCalculate(Math.max.apply(null,compareArr)) //2级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//2级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //2级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                  //设备开始加工时间与结束时间
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {
+                                    
+                                })
+                                
+                                timeEndList6.push(timeEnd3)
+                                this.repeat(timeEndList6)
+                                
+                                
+                            } //if order层
 
-                        // else if (Equip[i].level === 1.1) {
+                        }
 
-                        //     //waiting  to think......
+                        else if (Equip[i].level === 1.1) //1.1级设备加工时间计算
+                        {
 
-                        // }
+                            if (Equip[i].processorder === 1) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
 
+                                //时间比较3.1、3.2、3.3、2.1
+                                let compareArr=[Date.parse(new Date(timeEndList1[timeEndList1.length-1])),Date.parse(new Date(timeEndList2[timeEndList2.length-1])),Date.parse(new Date(timeEndList3[timeEndList3.length-1])),Date.parse(new Date(timeEndList6[timeEndList6.length-1]))]
+                                
+                                // console.log("时间最大值",this.timeCalculate(Math.max.apply(null,compareArr)))
 
+                                // let compare1 = Date.parse(new Date(timeEndList4[timeEndList4.length-1]))
+                                // let compare2 = Date.parse(new Date(timeEndList5[timeEndList5.length-1]))
 
-                    } //for
+                                let timeStart3 = this.timeCalculate(Math.max.apply(null,compareArr)) //1级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//1级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //1级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                  //设备开始加工时间与结束时间
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {
+                                    
+                                })
+                                
+                                timeEndList7.push(timeEnd3)
+                                this.repeat(timeEndList7)
+                                
+                                
+                            } //if order层
 
-                    console.log("for循环结束打印3.5：",timeEndList1)
-                    console.log("for循环结束打印3.4：",timeEndList2)
-                    console.log("for循环结束打印3.3：",timeEndList3)
-                    console.log("for循环结束打印3.2：",timeEndList4)
-                    console.log("for循环结束打印3.1：",timeEndList5)
+                            else if (Equip[i].processorder === 2) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList7[0] //1级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number                   //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList7.push(timeEnd3)
+                                this.repeat(timeEndList7)
+                                
+                            } //if order层
+
+                            else if (Equip[i].processorder === 3) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList7[1] //1级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList7.push(timeEnd3)
+                                this.repeat(timeEndList7)
+                                
+                            } //if order层
+
+                        }
+
+                    } //for End---------------------------------------------------------------
+                    // console.log("for循环结束打印3.5：",timeEndList1)
+                    // console.log("for循环结束打印3.4：",timeEndList2)
+                    // console.log("for循环结束打印3.3：",timeEndList3)
+                    // console.log("for循环结束打印3.2：",timeEndList4)
+                    // console.log("for循环结束打印3.1：",timeEndList5)
                     // console.log("for循环结束打印2.1：",timeEndList6)
                     // console.log("for循环结束打印1.1：",timeEndList7)
+                    // setTimeout( this.schedule2 ,1000 )
+
+                    axios({
+                    url: "http://localhost:8080/equipmentList",
+                    method: 'GET'
+                }).then(res => {
+                    var Equip2 = res.data.data;
+                    console.log(Equip2)
+
+                    for (var j = 0; j < Equip.length; j++) {
+                        let recordDetail = {}
+                        recordDetail.productionNumber = this.newScheduleRecord.productionNumber
+                        recordDetail.equipid = Equip2[j].equipid
+                        recordDetail.equipname = Equip2[j].equipname
+                        recordDetail.number = this.newScheduleRecord.number
+                        recordDetail.starttime = Equip2[j].starttime
+                        recordDetail.endtime = Equip2[j].endtime
+                        recordDetail.model = this.newScheduleRecord.partName
+                        axios({
+                            url: 'http://localhost:8080/addRecordDetail',
+                            method: 'POST',
+                            data: recordDetail,
+                        }).then(res => {
+                        })
+                    }
+                }).finally(() => {
+                    this.getRecordDetailAll();
+                })//finally
 
 
+                        }  //if (res.data.code == 20011) End
 
+                        else {
+                            this.$message.error('生产任务单号错误！请重新输入！');
+                        }
+                    }).finally(() => {
+                            this.getRecordAll();
+                            
+                        });//finally
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    
                 } //else
+            
+            // })//promise
 
-
+            // this.resetInput()
             },
 
-  
+            //添加到recordDetail表格中------------------------------------------------------------------------------------
+
+            schedule2() {
+                axios({
+                    url: "http://localhost:8080/equipmentList",
+                    method: 'GET'
+                }).then(res => {
+                    // var Equip2 = res.data.data;
+                    // console.log(Equip2)
+
+                    for (var j = 0; j < Equip.length; j++) {
+                        let recordDetail = {}
+                        recordDetail.productionNumber = this.newScheduleRecord.productionNumber
+                        recordDetail.equipid = Equip2[j].equipid
+                        recordDetail.equipname = Equip2[j].equipname
+                        recordDetail.number = this.newScheduleRecord.number
+                        recordDetail.starttime = Equip2[j].starttime
+                        recordDetail.endtime = Equip2[j].endtime
+                        recordDetail.model = this.newScheduleRecord.partName
+                        axios({
+                            url: 'http://localhost:8080/addRecordDetail',
+                            method: 'POST',
+                            data: recordDetail,
+                        }).then(res => {
+                        })
+                    }
+                }).finally(() => {
+                    this.getRecordDetailAll();
+                    
+                })//finally
+            }
+
 
 
 
