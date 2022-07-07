@@ -6,6 +6,7 @@ import com.Naariah.domain.Equipment;
 import com.Naariah.domain.PartBom;
 import com.Naariah.domain.Record;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,12 +55,35 @@ public class Controller {
     @GetMapping("/equipmentList")
     public Result getEquipmentAll(){
         QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("equipid","equipname","workshopid","lineid","stationid","processname","ct","level","processorder","partname");
+        queryWrapper.select("equipid","equipname","stationid","processname","ct","level","processorder","partname","starttime","endtime");
+        queryWrapper.orderBy(true,false,"level").orderBy(true,true,"processorder");
         List<Equipment> equipmentList = equipmentDao.selectList(queryWrapper);
         Integer code = equipmentList != null ? Code.GET_OK : Code.GET_ERR;
         String msg = equipmentList != null ? "" : "数据查询失败，请重试！";
         return  new Result(code,equipmentList,msg);
     };
+    //设备加工时间生产时间更新
+    @PostMapping("/equipmentListUpdate")
+    public void updateEquipmentList(@RequestBody Equipment equipment){
+
+        UpdateWrapper<Equipment> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("equipid",equipment.getEquipid());
+        updateWrapper.set("starttime",equipment.getStarttime());
+        updateWrapper.set("endtime",equipment.getEndtime());
+        equipmentDao.update(null,updateWrapper);
+
+
+//        int result = equipmentDao.updateById(equipment);
+//        boolean flag;
+//        if (result == 1){
+//            flag = true;
+//        }
+//        else{
+//            flag=false;
+//        }
+//        return new Result(flag ? Code.SAVE_OK:Code.SAVE_ERR,flag);
+    };
+
     //查询所属零件
     @GetMapping("/partNameList")
     public Result getPartNameAll(){
@@ -80,12 +104,12 @@ public class Controller {
     };
 
     //                                     生产排程计算用
-    @GetMapping("/getEquip")
-    public List<Equipment> getEquip () {
-        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
-        List<Equipment> equipmentList = equipmentDao.selectList(null);
-        return equipmentList;
-    };
+//    @GetMapping("/getEquip")
+//    public List<Equipment> getEquip () {
+//        QueryWrapper<Equipment> wrapper = new QueryWrapper<>();
+//        List<Equipment> equipmentList = equipmentDao.selectList(null);
+//        return equipmentList;
+//    };
 
 
 

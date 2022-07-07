@@ -29,7 +29,7 @@
     }
 
     .ecustomWidth {
-        width: 1250px;
+        width: 1100px;
     }
 
     .header {
@@ -263,7 +263,7 @@
                 <el-option v-for="item in modelNameList" :key="item.model" :label="item.model" :value="item.model">
                 </el-option>
             </el-select>
-            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange" height="450">
+            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange" height="190">
 
                 <el-table-column prop="partS" label="物料编号" width="250"></el-table-column>
                 <el-table-column prop="partSName" label="物料名称" width="250"></el-table-column>
@@ -289,8 +289,6 @@
             <el-table :data="equipmentDataList" height="450">
                 <el-table-column prop="equipid" label="设备编号" width="100"></el-table-column>
                 <el-table-column prop="equipname" label="设备名称" width="180"></el-table-column>
-                <el-table-column prop="workshopid" label="车间" width="70"></el-table-column>
-                <el-table-column prop="lineid" label="产线" width="100"></el-table-column>
                 <el-table-column prop="stationid" label="工位" width="140"></el-table-column>
                 <el-table-column prop="processname" label="工序" width="140"></el-table-column>
                 <el-table-column prop="ct" label="节拍/s"></el-table-column>
@@ -365,18 +363,12 @@
                 date:'',//排产日期
                 createTime: '',//创建时间
             },
-//对应详细表格
-            RecordDetail:{
-                productionNumber: '',//生产任务单号
-                equipid:'',//设备id
-                equipname:'',//设备名称
-                startTime: '',//开始时间
-                endTime: '',//结束时间
-                date:'',//排产日期
-                number: '', //需求数量
-                model:'',//加工型号
-            
-            }
+            //对应详细表格
+            RecordDetail: [],
+
+          
+
+
 
 
         },
@@ -514,7 +506,7 @@
 
         },
 
-        methods: {
+        methods: { 
             //获取当前时间
             dateFormat() {
                 // 为小于10的数字补零
@@ -528,6 +520,36 @@
                 var createTime = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
                 this.newScheduleRecord.createTime = createTime;
             },
+
+            //时间戳改字符串函数
+            timeCalculate(time){
+                let timeTemp = new Date(time)             
+                            let year = timeTemp.getFullYear();
+                            let month = timeTemp.getMonth() + 1 < 10 ? "0" + (timeTemp.getMonth() + 1) : timeTemp.getMonth() + 1;
+                            let day = timeTemp.getDate() < 10 ? "0" + timeTemp.getDate() : timeTemp.getDate();
+                            let hours = timeTemp.getHours() < 10 ? "0" + timeTemp.getHours() : timeTemp.getHours();
+                            let minutes = timeTemp.getMinutes() < 10 ? "0" + timeTemp.getMinutes() : timeTemp.getMinutes();
+                            let seconds = timeTemp.getSeconds() < 10 ? "0" + timeTemp.getSeconds() : timeTemp.getSeconds();
+                            return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+            },
+           
+           
+            //删除数组重复元素
+             repeat(arr) {
+
+                for (var i = 0; i < arr.length; i++) {
+                    for (var j = i + 1; j < arr.length; j++) {//第一次是拿第一个数据和剩余的n-1个数据判断是否相等、第二次是拿第二个数据和剩余的n-1个数据相比
+                        if (arr[i] == arr[j]) {
+
+                            var del = j;
+
+                            arr.splice(del, 1);//找到了该数据的下标就删除了
+                        }
+                    }
+                }
+                return arr;
+            },
+
 
             //返回功能
             myReturn() {
@@ -620,24 +642,20 @@
                     method: 'GET'
                 }).then(res => {
                     this.equipmentDataList = res.data.data;
+                    var Equip = res.data.data;
+                        window.Equip = Equip;
                 }),
                     axios({
                         url: "http://localhost:8080/partNameList",
                         method: 'GET'
                     }).then(res => {
                         this.partNameList = res.data.data;
-                    }),
+                    })
 
                     //计算排程用
                     //生产排程计算
                     //A：转子轴+转子+转子轴承组件 、B：前端盖、C：后端盖、 D：机座、E：定子、F：机座定子、G：三相异步电机
-                    axios({
-                        url: "http://localhost:8080/getEquip",
-                        method: 'GET'
-                    }).then(res => {
-                        var Equip = res.data;
-                        window.Equip = Equip;
-                    })
+                
             },
 
             searchPartName() {
@@ -700,6 +718,16 @@
                     console.log('排产日期:', this.newScheduleRecord.date);
                     console.log('创建时间:', this.newScheduleRecord.createTime);
 
+
+
+
+
+
+
+
+
+
+
                     //提交表单
                     axios({
                         url: 'http://localhost:8080/addRecord',
@@ -707,7 +735,20 @@
                         data: this.newScheduleRecord,
                     }).then(res => {
                         if (res.data.code == 20011) {
-                            this.resetInput()
+                            // this.resetInput()
+
+
+
+
+
+
+
+
+
+
+
+
+
                         }
                         else {
                             this.$message.error('系统错误请稍后再试！');
@@ -718,27 +759,675 @@
                         });
 
 //-------------------------------------------------------------------------------------------------------------
-                            let time1 = this.newScheduleRecord.date
-                            let time2 = '08:30:00'
-                            var time3 = time1 + ' ' + time2
-                            console.log(time3)
-                            time3 = time3.replace(/-/g,"/")
-                            var time4 = new Date(time3)
-                            console.log(time4)
 
+
+                    var timeEndList1 = []
+                    var timeEndList2 = []
+                    var timeEndList3 = []
+                    var timeEndList4 = []
+                    var timeEndList5 = []
+                    var timeEndList6 = []
+                    var timeEndList7 = []
 
                     for (var i = 0; i < Equip.length; i++) {
-                        if(Equip[i].level === 3.1 || Equip[i].level===3.2 || Equip[i].level===3.3 || Equip[i].level===3.4 ||Equip[i].level===3.5)
+
+                        if (Equip[i].level === 3.5)//3.5级设备加工时间计算
                         {
-                           
-                        // Equip[i].starttime = time3 
+                            if (Equip[i].processorder === 1) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                  //设备开始加工时间与结束时间
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {
+                                    
+                                })
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+
+                            else if (Equip[i].processorder === 2) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[0] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+                            else if (Equip[i].processorder === 3) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[1] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+                            else if (Equip[i].processorder === 4) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[2] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+                            
+                            else if (Equip[i].processorder === 5) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[3] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+                            else if (Equip[i].processorder === 6) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[4] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+                            else if (Equip[i].processorder === 7) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[5] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+                            else if (Equip[i].processorder === 8) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[6] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+                            else if (Equip[i].processorder === 9) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[7] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/8                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+                            else if (Equip[i].processorder === 10) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[8] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
+                            else if (Equip[i].processorder === 11) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList1[9] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                timeEndList1.push(timeEnd3)
+                                this.repeat(timeEndList1)
+                            } //if order层
+
                         }
-                        else{
-                            Equip[i].starttime = '' 
+                       
+                        else if (Equip[i].level === 3.4) //3.4级设备加工时间计算
+                        {
+
+                            if (Equip[i].processorder === 1) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                  //设备开始加工时间与结束时间
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {
+                                    
+                                })
+                                
+                                timeEndList2.push(timeEnd3)
+                                this.repeat(timeEndList2)
+                                
+                                
+                            } //if order层
+
+
+                            else if (Equip[i].processorder === 2) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList2[0] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+        
+                                timeEndList2.push(timeEnd3)
+                                this.repeat(timeEndList2)
+                                
+                            } //if order层
+
                         }
-                        // console.log(Equip[i])
-                        
+
+                        else if (Equip[i].level === 3.3) //3.3级设备加工时间计算
+                        {
+
+                            if (Equip[i].processorder === 1) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                 //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                  //设备开始加工时间与结束时间
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {
+                                    
+                                })
+                                
+                                timeEndList3.push(timeEnd3)
+                                this.repeat(timeEndList3)
+                                
+                                
+                            } //if order层
+
+
+                            else if (Equip[i].processorder === 2) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList3[0] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList3.push(timeEnd3)
+                                this.repeat(timeEndList3)
+                                
+                            } //if order层
+
+                        }
+
+                        else if (Equip[i].level === 3.2) //3.2级设备加工时间计算
+                        {
+                            if (Equip[i].processorder === 1) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                 //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                  //设备开始加工时间与结束时间
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {
+                                    
+                                })
+                                
+                                timeEndList4.push(timeEnd3)
+                                this.repeat(timeEndList4)
+                                
+                                
+                            } //if order层
+
+
+                            else if (Equip[i].processorder === 2) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList4[0] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList4.push(timeEnd3)
+                                this.repeat(timeEndList4)
+                                
+                            } //if order层
+                        }
+
+                        else if (Equip[i].level === 3.1) //3.1级设备加工时间计算
+                        {
+
+                            if (Equip[i].processorder === 1) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                 //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                  //设备开始加工时间与结束时间
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {
+                                    
+                                })
+                                
+                                timeEndList5.push(timeEnd3)
+                                this.repeat(timeEndList5)
+                                
+                                
+                            } //if order层
+
+
+                            else if (Equip[i].processorder === 2) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList5[0] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList5.push(timeEnd3)
+                                this.repeat(timeEndList5)
+                                
+                            } //if order层
+
+                            else if (Equip[i].processorder === 3) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList5[1] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList5.push(timeEnd3)
+                                this.repeat(timeEndList5)
+                                
+                            } //if order层
+                            else if (Equip[i].processorder === 4) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList5[2] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList5.push(timeEnd3)
+                                this.repeat(timeEndList5)
+                                
+                            } //if order层
+                            else if (Equip[i].processorder === 5) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList5[3] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList5.push(timeEnd3)
+                                this.repeat(timeEndList5)
+                                
+                            } //if order层
+                            else if (Equip[i].processorder === 6) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList5[4] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList5.push(timeEnd3)
+                                this.repeat(timeEndList5)
+                                
+                            } //if order层
+                            else if (Equip[i].processorder === 7) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList5[5] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList5.push(timeEnd3)
+                                this.repeat(timeEndList5)
+                                
+                            } //if order层
+                            else if (Equip[i].processorder === 8) {
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart3 = timeEndList5[6] //3级设备加工开始时间字符串
+                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
+                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
+                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = Equip[i].equipid
+                                equipmentUpadateList.starttime = timeStart3
+                                equipmentUpadateList.endtime = timeEnd3
+                                axios({
+                                    url: 'http://localhost:8080/equipmentListUpdate',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                }).then(res => {    
+                                }) 
+                                
+                                timeEndList5.push(timeEnd3)
+                                this.repeat(timeEndList5)
+                                
+                            } //if order层
+
+                        }
+
+
+                        // else if (Equip[i].level === 2.1) {
+
+                        //     //waiting  to think......
+
+                        // }
+
+
+                        // else if (Equip[i].level === 1.1) {
+
+                        //     //waiting  to think......
+
+                        // }
+
+
+
                     } //for
+
+                    console.log("for循环结束打印3.5：",timeEndList1)
+                    console.log("for循环结束打印3.4：",timeEndList2)
+                    console.log("for循环结束打印3.3：",timeEndList3)
+                    console.log("for循环结束打印3.2：",timeEndList4)
+                    console.log("for循环结束打印3.1：",timeEndList5)
+                    // console.log("for循环结束打印2.1：",timeEndList6)
+                    // console.log("for循环结束打印1.1：",timeEndList7)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 } //else
 
