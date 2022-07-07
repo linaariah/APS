@@ -15,7 +15,7 @@ import java.util.List;
 
 
 @RestController
-public class Controller {
+public class APSController {
 
     //选择物料---------------------------------------------------------
     @Autowired
