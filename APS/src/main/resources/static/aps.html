@@ -156,7 +156,7 @@
                                     <span style='color: #909399;font-weight:bolder;'>物料编号：</span>
                                     <el-input :disabled="true" placeholder="需生产排程的物料"
                                         style='width:266px;margin:0px 10px 10px 0px;' v-bind:value="newScheduleRecord.partNo">
-                                    <el-button slot="append" icon="el-icon-search" @click="dialogPartVisible = true">选择物料</el-button>
+                                    <el-button slot="append" icon="el-icon-search" @click="openPartList">选择物料</el-button>
                                     </el-input>
         
                                     <!--物料名称-->
@@ -590,9 +590,14 @@
             },
     
             //打开生产排程记录
-            openRecordList() {
-                this.dialogRecordVisible = true,
+            openRecordList(row) {
+                this.dialogRecordVisible = true
+                this.$nextTick(() => {
+                this.$refs.singleTable.setCurrentRow(row);
                 this.newScheduleRecord.productionNumber = ''
+            })
+                
+
             },
 
             //  获取生产排程记录
@@ -649,7 +654,13 @@
             },
     
             //  生产排程记录弹窗查询与取消
-            recordConfirm(row) {
+            openPartList(row){
+                this.dialogPartVisible = true;
+                this.$nextTick(() => {
+                this.$refs.singleTable2.setCurrentRow(row)
+            })
+            },
+            recordConfirm() {
                 this.dialogRecordVisible = false;
                 this.newScheduleRecord.productionNumber=this.currentRow.productionNumber
                 this.newScheduleRecord.orderNumber=this.currentRow.orderNumber
@@ -658,6 +669,7 @@
                 this.newScheduleRecord.partName=this.currentRow.partName
                 this.newScheduleRecord.number=this.currentRow.number
                 this.newScheduleRecord.date=this.currentRow.date
+              
 
                 axios({
                     url: "http://localhost:8080//recordDetailList",
@@ -673,15 +685,14 @@
                     this.loading=true
                     setTimeout(() => {this.loading=false}, 800);
                 })
-                this.$refs.singleTable.setCurrentRow(row);
+               
 
             },
-            recordCancel(row) {
+            recordCancel() {
                 this.resetInput();
                 this.loading=true
                     setTimeout(() => {this.loading=false}, 800);
                 this.dialogRecordVisible = false;
-                this.$refs.singleTable.setCurrentRow(row);
                 this.newScheduleRecord.productionNumber =''
                 this.getRecordDetailAll();
 
@@ -763,11 +774,11 @@
                 else { this.getPartAll() }
             },
            // 物料选择弹框确认与关闭
-            partCancel(row) {
+            partCancel() {
                 this.dialogPartVisible = false;
                 this.newScheduleRecord.partNo = '';
                 this.newScheduleRecord.partName = '';
-                this.$refs.singleTable2.setCurrentRow(row)
+                
 
             },
             partConfirm() {

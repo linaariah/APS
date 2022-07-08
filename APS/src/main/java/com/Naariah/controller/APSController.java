@@ -241,11 +241,22 @@ public class APSController {
     public PageInfo getRecordDetailAll(@RequestParam Long current,@RequestParam String productionNumber){
         //1 创建IPage分页对象,设置分页参数,1为当前页码，10为每页显示的记录数
         IPage<RecordDetail> page=new Page<>(current,10);
-        QueryWrapper<RecordDetail> wrapper = new QueryWrapper<>();
-        wrapper.eq("production_number",productionNumber);
+        QueryWrapper<RecordDetail> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<RecordDetail> queryWrapper2 = new QueryWrapper<>();
+
+        queryWrapper.eq("production_number",productionNumber);
+        queryWrapper.orderByAsc("production_number");
+//        queryWrapper.orderByAsc("starttime");
+        queryWrapper.orderByAsc("equipid");
+
+
+        queryWrapper2.orderByAsc("production_number");
+//        queryWrapper2.orderByAsc("starttime");
+        queryWrapper2.orderByAsc("equipid");
+
         //2 执行分页查询
         if (productionNumber== ""){
-            recordDetailDao.selectPage(page,null);
+            recordDetailDao.selectPage(page,queryWrapper2);
             PageInfo pageInfo = new PageInfo();
             pageInfo.setCurrent(page.getCurrent());
             pageInfo.setPages(page.getPages());
@@ -254,7 +265,7 @@ public class APSController {
             return pageInfo;
         }
         else{
-        recordDetailDao.selectPage(page,wrapper);
+        recordDetailDao.selectPage(page,queryWrapper);
         PageInfo pageInfo = new PageInfo();
         pageInfo.setCurrent(page.getCurrent());
         pageInfo.setPages(page.getPages());
