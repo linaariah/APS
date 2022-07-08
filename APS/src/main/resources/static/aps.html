@@ -25,11 +25,13 @@
     /*}*/
     /*center class="roll-dialog"*/
 
-    .customWidth {
+    .customWidth1 {
         width: 1100px;
     }
-
-    .ecustomWidth {
+    .customWidth2 {
+        width: 800px;
+    }
+    .customWidth3 {
         width: 1100px;
     }
 
@@ -91,6 +93,7 @@
 
 <body>
     <div id="app">
+<!-- -----------------------------------------------------------------------------------------------页面head -->
         <div class="header">
             <h1 style='margin: 20px 0px 0px 0px;'>制造执行系统</h1>
             <div style='color:#ffffff;text-align: right;'>
@@ -100,14 +103,17 @@
         </div>
         <el-container>
             <div style='margin: 0px 0px 0px 10px;'>
-                <el-button style='background-color:#0e539a;border-color:#0e539a;' type="primary"
-                    icon="el-icon-arrow-left" @click="myReturn">返回主菜单
+                <el-button style='background-color:#0e539a;border-color:#0e539a;' type="primary" icon="el-icon-arrow-left"
+                    @click="myReturn">返回主菜单
                 </el-button>
             </div>
         </el-container>
-
+<!-- -----------------------------------------------------------------------------------------------页面head END -->
+        
+<!-- 内容表单+ 生产排程表 + 甘特图-------------------------------------------------------------------------------- -->
         <el-container>
             <el-main>
+                <!-- 大标题 -->
                 <el-row style='margin-bottom: 0px;'>
                     <el-col :span="6">
                         <div class="grid-content bg-purple"></div>
@@ -119,11 +125,12 @@
                         <div class="grid-content bg-purple"></div>
                     </el-col>
                 </el-row>
-                <!--功能栏-->
+
+                <!--功能栏------------------------------------------------------------------------------------------>
                 <el-row>
                     <el-col :span="24">
                         <div class="grid-content bg-purple" style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-        						  background-color: #ffffff;">
+                						  background-color: #ffffff;">
                             <div style='padding:10px'>
                                 <div style='padding:10px 10px 10px 10px'>
         
@@ -131,10 +138,8 @@
                                     <span style='color: #909399;font-weight:bolder;'>生产任务单号：</span>
                                     <el-input placeholder="请输入内容" style='width:220px;margin:0px 10px 10px 0px;'
                                         v-model.trim="newScheduleRecord.productionNumber">
-        
-                                        <!--排程记录-->
-                                        <el-button slot="append" icon="el-icon-search" @click="dialogRecordVisible = true">排程记录
-                                        </el-button>
+                                    <!--排程记录按钮-->
+                                    <el-button slot="append" icon="el-icon-search" @click="dialogRecordVisible = true">排程记录</el-button>
                                     </el-input>
         
                                     <!--订单编号-->
@@ -151,9 +156,7 @@
                                     <span style='color: #909399;font-weight:bolder;'>物料编号：</span>
                                     <el-input :disabled="true" placeholder="需生产排程的物料"
                                         style='width:266px;margin:0px 10px 10px 0px;' v-bind:value="newScheduleRecord.partNo">
-                                        <el-button slot="append" icon="el-icon-search" @click="dialogPartVisible = true">
-                                            选择物料
-                                        </el-button>
+                                    <el-button slot="append" icon="el-icon-search" @click="dialogPartVisible = true">选择物料</el-button>
                                     </el-input>
         
                                     <!--物料名称-->
@@ -162,7 +165,8 @@
                                         v-bind:value="newScheduleRecord.partName"></el-input>
                                     </br>
         
-                                    <!--需求数量-->
+                                    <!--需求数量 div控制间隔------------->
+                                    <div style="margin-top: 25px;">
                                     <span style='color: #909399;font-weight:bolder;'>需求数量：</span>
                                     <el-input-number :min="1" :max="1000" v-model="newScheduleRecord.number" :step="100">
                                     </el-input-number>
@@ -178,38 +182,46 @@
                                     </el-button>
         
                                     <el-button type="primary" @click="schedule">生产排程计算</el-button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </el-col>
                 </el-row>
+
+ <!-- 第一块内容表单END---------------------------------------------------------------------------------------------- -->
         
-                <!--详细表格-->
+<!--生产排程表---------------------------------------------------------------------------------------------------------->
                 <el-row>
                     <el-col :span="24">
                         <div class="grid-content bg-purple" style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-                          background-color: #ffffff;">
+                                  background-color: #ffffff;">
                             <div style='padding:10px'>
                                 <div style='padding:10px 10px 10px 10px'>
-                                    <div style="margin-bottom: 30px;">
+                                    <div style="margin-bottom: 20px;">
                                         <span style='color: #909399;font-weight:bolder'>生产排程表：</span>
                                     </div>
-                                    <el-table :data="recordDetailDataList" border style="width: 100%" height="550"
-                                        v-loading="loading">
-                                        <el-table-column label="序号" width="150" type="index" :index="indexAdd"></el-table-column>
-                                        <el-table-column prop="productionNumber" label="生产任务单号" width="170"></el-table-column>
-                                        <el-table-column prop="equipid" label="设备编号" width="160"></el-table-column>
-                                        <el-table-column prop="equipname" label="设备名称" width="170"></el-table-column>
-                                        <el-table-column prop="starttime" label="开始加工时间" width="180"></el-table-column>
-                                        <el-table-column prop="endtime" label="结束加工时间" width="180"></el-table-column>
+                               
+                                    <el-table :data="recordDetailDataList" border style="width: 100%;" height="550"
+                                        v-loading="loading" :fit="true">
+                                        <el-table-column label="序号" width="150" type="index" :index="indexAdd">
+                                        </el-table-column>
+                                        <el-table-column prop="productionNumber" label="生产任务单号"></el-table-column>
+                                        <el-table-column prop="equipid" label="设备编号"></el-table-column>
+                                        <el-table-column prop="equipname" label="设备名称"></el-table-column>
+                                        <el-table-column prop="starttime" label="开始加工时间"></el-table-column>
+                                        <el-table-column prop="endtime" label="结束加工时间"></el-table-column>
                                         <!-- <el-table-column prop="production_number" label="排产日期" width="150"></el-table-column> -->
-                                        <el-table-column prop="number" label="需求数量" width="120"></el-table-column>
+                                        <el-table-column prop="number" label="需求数量"></el-table-column>
                                         <el-table-column prop="model" label="加工型号"></el-table-column>
         
                                     </el-table>
-                                    <el-pagination  @current-change="handleCurrentPageChange" 
-                                        :page-size="10" layout="total, prev, pager, next" :total="pageTotal" :current-page="currentPage">
+                                
+                                <div style="margin: auto;">
+                                    <el-pagination @current-change="handleCurrentPageChange" :page-size="10"
+                                        layout="total, prev, pager, next" :total="pageTotal" :current-page="currentPage"  align="center" >
                                     </el-pagination>
+                                </div>
         
         
                                 </div>
@@ -218,13 +230,13 @@
                     </el-col>
                 </el-row>
         
+<!--生产排程表END---------------------------------------------------------------------------------------------------------->        
         
-        
-                <!--甘特图-->
+<!--生产排程甘特图--------------------------------------------------------------------------------------------------------->
                 <el-row>
                     <el-col :span="24">
                         <div class="grid-content bg-purple" style="box-shadow: 4px 0 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-        						  background-color: #ffffff;">
+                						  background-color: #ffffff;">
                             <div style='padding:10px'>
                                 <div style='padding:10px 10px 10px 10px'>
                                     <span style='color: #909399;font-weight:bolder;'>生产排程甘特图：</span>
@@ -238,28 +250,50 @@
                     </el-col>
                 </el-row>
         
-        
-        
-        
-        
-        
-        
+<!--生产排程甘特图 END--------------------------------------------------------------------------------------------------------->       
+                     
             </el-main>
         </el-container>
 
+<!-- 页面元素END------------------------------------------------------------------------------------------------------- -->
+<!-- 页面元素END------------------------------------------------------------------------------------------------------- -->
+<!-- 内容表单+ 生产排程表 + 甘特图--------------------------------------------------------------------------------------- -->
 
-        <!--Part弹出框-->
-        <el-dialog title="生产排程物料选择" :visible.sync="dialogPartVisible">
+  <!--Record排程记录弹出框-------------------------------------------->
+  <el-dialog title="排程记录" :visible.sync="dialogRecordVisible" custom-class="customWidth1" :show-close="false">
+                                          
+    <!-- 添加一个搜索框模糊搜索待开发 -->
+
+    <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChange" height="450" v-loading="loading" ref="singleTable">
+        <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
+        <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
+        <el-table-column prop="customerName" label="客户名称"></el-table-column>
+        <el-table-column prop="partNo" label=" 物料编号" width="150"></el-table-column>
+        <el-table-column prop="partName" label="物料名称" width="160"></el-table-column>
+        <el-table-column prop="number" label="需求数量" width="100"></el-table-column>
+        <el-table-column prop="date" label="排产日期" width="100"></el-table-column>
+        <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
+    </el-table>
+    <span slot="footer" class="dialog-footer">
+        <el-button type="danger" plain @click="deleteRecord">删除</el-button>
+        <el-button @click="recordCancel">取 消</el-button>
+        <el-button type="primary" @click="recordConfirm">查 询</el-button>
+    </span>
+</el-dialog>    
+
+
+<!--Part选择物料弹出框----------------------------------------------------------->
+        <el-dialog title="生产排程物料选择" :visible.sync="dialogPartVisible" :show-close="false" :fit="true" custom-class="customWidth2">
             <!--下拉菜单-->
             <span style='color: #909399;font-weight:bolder;'>查询所属零件名称：</span>
             <el-select v-model="modelname" placeholder="请选择" clearable @change="searchModelName">
                 <el-option v-for="item in modelNameList" :key="item.model" :label="item.model" :value="item.model">
                 </el-option>
             </el-select>
-            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange" height="200">
+            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange" height="210" ref="singleTable2">
 
-                <el-table-column prop="partS" label="物料编号" width="250"></el-table-column>
-                <el-table-column prop="partSName" label="物料名称" width="250"></el-table-column>
+                <el-table-column prop="partS" label="物料编号"></el-table-column>
+                <el-table-column prop="partSName" label="物料名称"></el-table-column>
                 <el-table-column prop="model" label="所属规格型号"></el-table-column>
             </el-table>
             <span slot="footer" class="dialog-footer">
@@ -269,8 +303,8 @@
         </el-dialog>
 
 
-        <!--Equipment弹出框-->
-        <el-dialog title="设备信息查询" :visible.sync="dialogEquipmentVisible" custom-class="ecustomWidth">
+<!--Equipment设备信息查询弹出框-------------------------------------------------->
+        <el-dialog title="设备信息查询" :visible.sync="dialogEquipmentVisible" custom-class="customWidth3" :show-close="false">
             <!--下拉菜单-->
             <span style='color: #909399;font-weight:bolder;'>查询所属零件名称：</span>
             <el-select v-model="partname" placeholder="请选择" clearable @change="searchPartName">
@@ -297,26 +331,7 @@
 
 
 
-        <!--Record弹出框-->
-        <el-dialog title="排程记录" :visible.sync="dialogRecordVisible" custom-class="customWidth">
-
-            <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChange" height="450" v-loading="loading">
-                <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
-                <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
-                <el-table-column prop="customerName" label="客户名称"></el-table-column>
-                <el-table-column prop="partNo" label=" 物料编号" width="150"></el-table-column>
-                <el-table-column prop="partName" label="物料名称" width="160"></el-table-column>
-                <el-table-column prop="number" label="需求数量" width="100"></el-table-column>
-                <el-table-column prop="date" label="排产日期" width="100"></el-table-column>
-                <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
-            </el-table>
-            <span slot="footer" class="dialog-footer">
-
-                <el-button type="danger" plain @click="deleteRecord">删除</el-button>
-                <el-button @click="recordCancel">取 消</el-button>
-                <el-button type="primary" @click="recordConfirm">查 询</el-button>
-            </span>
-        </el-dialog>
+        
 
     </div>
 
@@ -327,14 +342,13 @@
     var app = new Vue({
         el: '#app',
         data: {
-            dialogRecordVisible: false,
-            dialogPartVisible: false,
-            dialogEquipmentVisible: false,
-            loading: true,
+            dialogRecordVisible: false,//生产排程记录
+            dialogPartVisible: false,//物料选择
+            dialogEquipmentVisible: false,//设备信息查询
+            loading: true,      //加载框
 
             recordDataList: [],//排程记录
-            
-            recordDetailDataList: [],//对应详细表格
+            recordDetailDataList: [],//生产排程对应详细表格
 
             partDataList: [],//选择物料
             modelNameList: [],//所属产品型号
@@ -344,9 +358,6 @@
             equipmentDataList: [],//设备信息查询
             partNameList: [],//所属零件名称表
             partname: '',//选择器显示
-
-            tableData: [],//生产排程表
-
 
             newScheduleRecord: {
                 productionNumber: '',//生产任务单号
@@ -359,7 +370,7 @@
                 createTime: '',//创建时间
             },
 
-            pageTotal:1,
+            pageTotal:1,//fenye
             currentPage:1,
 
         },
@@ -502,6 +513,11 @@
         // },
 
         methods: { 
+
+            //返回功能
+            myReturn() {
+                location.href = 'main.html';
+            },
        
             //获取当前时间
             dateFormat() {
@@ -517,6 +533,7 @@
                 var today = year + "-" + month + "-" + day
                 this.newScheduleRecord.createTime = createTime;
                 this.newScheduleRecord.date=today;
+                window.today=today;
             },
 
             //时间戳改字符串函数
@@ -530,8 +547,7 @@
                             let seconds = timeTemp.getSeconds() < 10 ? "0" + timeTemp.getSeconds() : timeTemp.getSeconds();
                             return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
             },
-           
-           
+             
             //删除数组重复元素
              repeat(arr) {
 
@@ -548,12 +564,23 @@
                 return arr;
             },
 
-
-            //返回功能
-            myReturn() {
-                location.href = 'main.html';
+            //表格选中行
+            handleCurrentChange(val) {
+                this.currentRow = val;
             },
-            //  获取记录
+
+            //重置输入框
+            resetInput() {
+                this.newScheduleRecord.productionNumber = '';
+                this.newScheduleRecord.orderNumber = '';
+                this.newScheduleRecord.customerName = '';
+                this.newScheduleRecord.partNo = '';
+                this.newScheduleRecord.partName = '';
+                this.newScheduleRecord.number = 100;
+                this.newScheduleRecord.date = today;
+            },
+    
+            //  获取生产排程记录
             getRecordAll() {
                 axios({
                     url: "http://localhost:8080/recordList",
@@ -564,13 +591,14 @@
 
             },
 
-            // 获取详细记录
+            // 获取生产排程详细记录
             getRecordDetailAll(){
                 axios({
                     url: "http://localhost:8080//recordDetailList",
                     method: 'GET',
                     params:{
-                        current:1
+                        current:1,
+                        productionNumber:''
                     }
                 }).then(res => {
                     this.recordDetailDataList = res.data.data;
@@ -580,19 +608,20 @@
 
             },
 
+            //分页选择器
             handleCurrentPageChange(val){
                 this.currentPage=val
-                console.log("选中了第几页",val)
-
+                // console.log("选中了第几页",val)
                 axios({
                     url: "http://localhost:8080//recordDetailList",
                     method: 'GET',
                     params:{
-                        current: this.currentPage
+                        current: this.currentPage,
+                        productionNumber: this.newScheduleRecord.productionNumber
                     }
                 }).then(res => {
                     this.recordDetailDataList = res.data.data;
-            
+                    this.pageTotal=res.data.total
                 })
             },
 
@@ -604,19 +633,58 @@
                 return index + 1 + (page - 1) * pagesize
             },
     
-
-            //  记录弹窗查询与取消
+            //  生产排程记录弹窗查询与取消
             recordConfirm() {
                 this.dialogRecordVisible = false;
+                this.newScheduleRecord.productionNumber=this.currentRow.productionNumber
+                this.newScheduleRecord.orderNumber=this.currentRow.orderNumber
+                this.newScheduleRecord.customerName=this.currentRow.customerName
+                this.newScheduleRecord.partNo=this.currentRow.partNo
+                this.newScheduleRecord.partName=this.currentRow.partName
+                this.newScheduleRecord.number=this.currentRow.number
+                this.newScheduleRecord.date=this.currentRow.date
+
+                axios({
+                    url: "http://localhost:8080//recordDetailList",
+                    method: 'GET',
+                    params:{
+                        current:1,
+                        productionNumber:this.newScheduleRecord.productionNumber
+
+                    }
+                }).then(res => {
+                    this.recordDetailDataList = res.data.data;
+                    this.pageTotal=res.data.total
+                    this.loading=true
+                    setTimeout(() => {this.loading=false}, 800);
+                })
 
             },
-            recordCancel() {
+            recordCancel(row) {
+                this.resetInput();
+                this.loading=true
+                    setTimeout(() => {this.loading=false}, 800);
                 this.dialogRecordVisible = false;
-            },
+                this.$refs.singleTable.setCurrentRow(row);
+                this.getRecordDetailAll();
 
-            //删除记录
+            },
+            //  生产排程记录弹窗查询与取消--------------------------------------------------END
+
+            //删除生产排程记录
             deleteRecord() {
-                this.newScheduleRecord.productionNumber = this.currentRow.productionNumber;
+                this.newScheduleRecord.productionNumber =''
+                
+                if(this.newScheduleRecord.productionNumber ===''){
+                    this.$message({
+                            message: '请选择要删除的数据',
+                            type: 'error'
+                        })
+                }
+                else 
+                {
+                    this.newScheduleRecord.productionNumber = this.currentRow.productionNumber;
+                
                 axios({
                     url: 'http://localhost:8080/deleteRecord',
                     method: 'POST',
@@ -648,10 +716,12 @@
                             this.getRecordDetailAll();
                         })
                
-
+                    }
             },
-            //---------------------------------------------------------------------------------------------
+            //删除生产排程记录-------------------------------------------------------------END
 
+
+            //生产物料选择查询------------------------
             getPartAll() {
                 //发送ajax请求
                 axios({
@@ -667,7 +737,9 @@
                         this.modelNameList = res.data.data;
                     })
             },
-            searchModelName() {
+            //搜索物料功能---------------------------
+            searchModelName()
+             {
                 param = "?modelname=" + this.modelname;
                 if (this.modelname != '') {   
                     axios.get('http://localhost:8080/searchModelNameList/' + param).then(res => {
@@ -676,11 +748,12 @@
                 }
                 else { this.getPartAll() }
             },
-
-            partCancel() {
+           // 物料选择弹框确认与关闭
+            partCancel(row) {
                 this.dialogPartVisible = false;
                 this.newScheduleRecord.partNo = '';
                 this.newScheduleRecord.partName = '';
+                this.$refs.singleTable2.setCurrentRow(row)
 
             },
             partConfirm() {
@@ -714,7 +787,7 @@
                     //A：转子轴+转子+转子轴承组件 、B：前端盖、C：后端盖、 D：机座、E：定子、F：机座定子、G：三相异步电机
                 
             },
-
+            //设备信息根据物料搜索功能
             searchPartName() {
                 param = "?partname=" + this.partname;
                 if (this.partname != '') {
@@ -725,32 +798,12 @@
                 else { this.getEquipmentAll() }
             },
 
-
-            //表格选中行
-            handleCurrentChange(val) {
-                this.currentRow = val;
-            },
-
-
-            //重置输入框
-            resetInput() {
-                this.newScheduleRecord.productionNumber = '';
-                this.newScheduleRecord.orderNumber = '';
-                this.newScheduleRecord.customerName = '';
-                this.newScheduleRecord.partNo = '';
-                this.newScheduleRecord.partName = '';
-                this.newScheduleRecord.number = 100;
-                this.newScheduleRecord.date = '';
-            },
-
             //设备信息隐藏
             eHide() {
                 this.dialogEquipmentVisible = false;
             },
 
-
-
-
+//-------------------------------------------------------------------------------------
             //排程计算
             schedule() {
                 // return new Promise((resolve,reject) =>{
@@ -1576,7 +1629,19 @@
                         })
                     }
                 }).finally(() => {
-                    this.getRecordDetailAll();
+                    // this.getRecordDetailAll();
+                    axios({
+                    url: "http://localhost:8080//recordDetailList",
+                    method: 'GET',
+                    params:{
+                        current:1,
+                        productionNumber:this.newScheduleRecord.productionNumber
+                    }
+                }).then(res => {
+                    this.recordDetailDataList = res.data.data;
+                    this.pageTotal=res.data.total
+                })
+                  
                     this.loading=true,
                     setTimeout(() => {this.loading=false}, 1000);
 
@@ -1601,40 +1666,7 @@
             // this.resetInput()
             },
 
-            //添加到recordDetail表格中------------------------------------------------------------------------------------
-
-            schedule2() {
-                axios({
-                    url: "http://localhost:8080/equipmentList",
-                    method: 'GET'
-                }).then(res => {
-                    // var Equip2 = res.data.data;
-                    // console.log(Equip2)
-
-                    for (var j = 0; j < Equip.length; j++) {
-                        let recordDetail = {}
-                        recordDetail.productionNumber = this.newScheduleRecord.productionNumber
-                        recordDetail.equipid = Equip2[j].equipid
-                        recordDetail.equipname = Equip2[j].equipname
-                        recordDetail.number = this.newScheduleRecord.number
-                        recordDetail.starttime = Equip2[j].starttime
-                        recordDetail.endtime = Equip2[j].endtime
-                        recordDetail.model = this.newScheduleRecord.partName
-                        axios({
-                            url: 'http://localhost:8080/addRecordDetail',
-                            method: 'POST',
-                            data: recordDetail,
-                        }).then(res => {
-                        })
-                    }
-                }).finally(() => {
-                    this.getRecordDetailAll();
-                    
-                })//finally
-            }
-
-
-
+        
 
 
 

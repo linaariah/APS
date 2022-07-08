@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 public class APSController {
 
-    //选择物料---------------------------------------------------------
+    //生产排程选择物料功能----------------------------------------------------------------------------------
     @Autowired
     private PartDao partDao;
     @GetMapping("/partList")
@@ -50,7 +50,7 @@ public class APSController {
     };
 
 
-    //设备信息查询---------------------------------------------------------------------
+    //设备信息查询-------------------------------------------------------------------------------------------------------------------
     @Autowired
     private EquipmentDao equipmentDao;
     @GetMapping("/equipmentList")
@@ -72,8 +72,6 @@ public class APSController {
         updateWrapper.set("starttime",equipment.getStarttime());
         updateWrapper.set("endtime",equipment.getEndtime());
         equipmentDao.update(null,updateWrapper);
-
-
 //        int result = equipmentDao.updateById(equipment);
 //        boolean flag;
 //        if (result == 1){
@@ -84,8 +82,7 @@ public class APSController {
 //        }
 //        return new Result(flag ? Code.SAVE_OK:Code.SAVE_ERR,flag);
     };
-
-    //查询所属零件
+    //查询所属零件菜单
     @GetMapping("/partNameList")
     public Result getPartNameAll(){
         QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
@@ -175,7 +172,7 @@ public class APSController {
 
 
 
-    //添加记录-------------------------------------------------------------------
+    //生产排程添加记录-------------------------------------------------------------------
     @Autowired
     private RecordDao recordDao;
     @PostMapping("/addRecord")
@@ -191,11 +188,8 @@ public class APSController {
         return new Result(flag ? Code.SAVE_OK:Code.SAVE_ERR,flag);
     }
 
-//    public int addRecord(@RequestBody Record record) {
-//        return recordDao.insert(record);
-//    }
 
-    //删除记录------------------------------------------------------------------------------
+    //生产排程删除记录------------------------------------------------------------------------------
     @PostMapping("/deleteRecord")
     public Result deleteRecord(@RequestBody Record record){
         int result = recordDao.deleteById(record.getProductionNumber());
@@ -209,11 +203,7 @@ public class APSController {
         return new Result(flag ? Code.DELETE_OK:Code.DELETE_ERR,flag);
     }
 
-//    public int deleteRecord(@RequestBody Record record) {
-//         return recordDao.deleteById(record.getProductionNumber());
-//    }
-
-//查询记录-----------------------------------------------------------------------
+    //生产排程查询记录-----------------------------------------------------------------------
     @GetMapping("/recordList")
     public Result getRecordAll(){
         List<Record> recordList = recordDao.selectList(null);
@@ -222,7 +212,7 @@ public class APSController {
         return  new Result(code,recordList,msg);
     };
 
-    //添加详细记录------------------------------------------
+    //生产排程添加详细记录----------------------------------------------------------
     @Autowired
     private RecordDetailDao recordDetailDao;
     @PostMapping("/addRecordDetail")
@@ -237,48 +227,44 @@ public class APSController {
         }
         return new Result(flag ? Code.SAVE_OK:Code.SAVE_ERR,flag);
     };
-    //删除详细记录------------------------------------------
 
+    //生产排程删除详细记录----------------------------------------------
     @PostMapping("/deleteRecordDetail")
     public void deleteRecordDetail(@RequestBody Record record){
         QueryWrapper queryWrapper = new QueryWrapper<Record>();
         queryWrapper.eq("production_number",record.getProductionNumber());
         recordDetailDao.delete(queryWrapper);
 
-//        int result =
-//        boolean flag;
-//        if (result == 1){
-//            flag = true;
-//        }
-//        else{
-//            flag=false;
-//        }
-//        return new Result(flag ? Code.DELETE_OK:Code.DELETE_ERR,flag);
     };
-    //查询详细记录
+    //查询所有详细记录
     @GetMapping("/recordDetailList")
-    public PageInfo getRecordDetailAll(@RequestParam Long current){
+    public PageInfo getRecordDetailAll(@RequestParam Long current,@RequestParam String productionNumber){
         //1 创建IPage分页对象,设置分页参数,1为当前页码，10为每页显示的记录数
         IPage<RecordDetail> page=new Page<>(current,10);
+        QueryWrapper<RecordDetail> wrapper = new QueryWrapper<>();
+        wrapper.eq("production_number",productionNumber);
         //2 执行分页查询
-        recordDetailDao.selectPage(page,null);
-
+        if (productionNumber== ""){
+            recordDetailDao.selectPage(page,null);
+            PageInfo pageInfo = new PageInfo();
+            pageInfo.setCurrent(page.getCurrent());
+            pageInfo.setPages(page.getPages());
+            pageInfo.setTotal(page.getTotal());
+            pageInfo.setData(page.getRecords());
+            return pageInfo;
+        }
+        else{
+        recordDetailDao.selectPage(page,wrapper);
         PageInfo pageInfo = new PageInfo();
         pageInfo.setCurrent(page.getCurrent());
         pageInfo.setPages(page.getPages());
         pageInfo.setTotal(page.getTotal());
         pageInfo.setData(page.getRecords());
-
-        return pageInfo;
-
-
-//        @RequestParam(value = "current",required = false) Long current
-
-
-//        List<RecordDetail> recordDetailList = recordDetailDao.selectList(null);
-//        Integer code = recordDetailList != null ? Code.GET_OK : Code.GET_ERR;
-//        String msg =recordDetailList != null ? "" : "数据查询失败，请重试！";
-//        return  new Result(code,recordDetailList,msg);
+            return pageInfo;
+        }
     };
+
+
+
 
 }
