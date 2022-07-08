@@ -194,9 +194,9 @@
                                     <div style="margin-bottom: 30px;">
                                         <span style='color: #909399;font-weight:bolder'>生产排程表：</span>
                                     </div>
-                                    <el-table :data="recordDetailDataList" border style="width: 100%" height="450"
+                                    <el-table :data="recordDetailDataList" border style="width: 100%" height="550"
                                         v-loading="loading">
-                                        <el-table-column label="序号" width="150" type="index"></el-table-column>
+                                        <el-table-column label="序号" width="150" type="index" :index="indexAdd"></el-table-column>
                                         <el-table-column prop="productionNumber" label="生产任务单号" width="170"></el-table-column>
                                         <el-table-column prop="equipid" label="设备编号" width="160"></el-table-column>
                                         <el-table-column prop="equipname" label="设备名称" width="170"></el-table-column>
@@ -207,6 +207,9 @@
                                         <el-table-column prop="model" label="加工型号"></el-table-column>
         
                                     </el-table>
+                                    <el-pagination  @current-change="handleCurrentPageChange" 
+                                        :page-size="10" layout="total, prev, pager, next" :total="pageTotal" :current-page="currentPage">
+                                    </el-pagination>
         
         
                                 </div>
@@ -297,7 +300,7 @@
         <!--Record弹出框-->
         <el-dialog title="排程记录" :visible.sync="dialogRecordVisible" custom-class="customWidth">
 
-            <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChange" height="450">
+            <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChange" height="450" v-loading="loading">
                 <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
                 <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
                 <el-table-column prop="customerName" label="客户名称"></el-table-column>
@@ -356,15 +359,12 @@
                 createTime: '',//创建时间
             },
 
-
-
-
-          
-
-
-
+            pageTotal:1,
+            currentPage:1,
 
         },
+
+
         //钩子函数，VUE对象初始化完成后自动执行
         created() {
             this.dateFormat();
@@ -568,13 +568,42 @@
             getRecordDetailAll(){
                 axios({
                     url: "http://localhost:8080//recordDetailList",
-                    method: 'GET'
+                    method: 'GET',
+                    params:{
+                        current:1
+                    }
                 }).then(res => {
                     this.recordDetailDataList = res.data.data;
+                    this.pageTotal=res.data.total
                 })
                 
 
             },
+
+            handleCurrentPageChange(val){
+                this.currentPage=val
+                console.log("选中了第几页",val)
+
+                axios({
+                    url: "http://localhost:8080//recordDetailList",
+                    method: 'GET',
+                    params:{
+                        current: this.currentPage
+                    }
+                }).then(res => {
+                    this.recordDetailDataList = res.data.data;
+            
+                })
+            },
+
+            //表格索引连续
+            indexAdd(index) {
+                // console.log(index)
+                const page = this.currentPage // 当前页码
+                const pagesize = 10 // 每页条数
+                return index + 1 + (page - 1) * pagesize
+            },
+    
 
             //  记录弹窗查询与取消
             recordConfirm() {
@@ -595,11 +624,14 @@
                 }).then(res => {
                     if (res.data.code = 20021) 
                     {
-                        //删除成功标语
-                        this.$message({
+                        this.loading=true
+                        setTimeout(() => {this.loading=false}, 800)
+                        setTimeout(() => { this.$message({
                             message: '删除成功',
                             type: 'success'
-                        });
+                        })}, 1200)
+                        //删除成功标语
+                       
                     }
 
                 }).finally(() => {
@@ -719,7 +751,7 @@
 
 
 
-
+            //排程计算
             schedule() {
                 // return new Promise((resolve,reject) =>{
                     
@@ -1545,13 +1577,16 @@
                     }
                 }).finally(() => {
                     this.getRecordDetailAll();
+                    this.loading=true,
+                    setTimeout(() => {this.loading=false}, 1000);
+
                 })//finally
 
 
                         }  //if (res.data.code == 20011) End
 
                         else {
-                            this.$message.error('生产任务单号错误！请重新输入！');
+                            this.$message.error('该生产任务单号已经存在！请重新输入！');
                         }
                     }).finally(() => {
                             this.getRecordAll();

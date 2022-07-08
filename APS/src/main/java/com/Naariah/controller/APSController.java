@@ -3,12 +3,11 @@ import com.Naariah.dao.EquipmentDao;
 import com.Naariah.dao.PartDao;
 import com.Naariah.dao.RecordDao;
 import com.Naariah.dao.RecordDetailDao;
-import com.Naariah.domain.Equipment;
-import com.Naariah.domain.PartBom;
-import com.Naariah.domain.Record;
-import com.Naariah.domain.RecordDetail;
+import com.Naariah.domain.*;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -258,11 +257,28 @@ public class APSController {
     };
     //查询详细记录
     @GetMapping("/recordDetailList")
-    public Result getRecordDetailAll(){
-        List<RecordDetail> recordDetailList = recordDetailDao.selectList(null);
-        Integer code = recordDetailList != null ? Code.GET_OK : Code.GET_ERR;
-        String msg =recordDetailList != null ? "" : "数据查询失败，请重试！";
-        return  new Result(code,recordDetailList,msg);
+    public PageInfo getRecordDetailAll(@RequestParam Long current){
+        //1 创建IPage分页对象,设置分页参数,1为当前页码，10为每页显示的记录数
+        IPage<RecordDetail> page=new Page<>(current,10);
+        //2 执行分页查询
+        recordDetailDao.selectPage(page,null);
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setCurrent(page.getCurrent());
+        pageInfo.setPages(page.getPages());
+        pageInfo.setTotal(page.getTotal());
+        pageInfo.setData(page.getRecords());
+
+        return pageInfo;
+
+
+//        @RequestParam(value = "current",required = false) Long current
+
+
+//        List<RecordDetail> recordDetailList = recordDetailDao.selectList(null);
+//        Integer code = recordDetailList != null ? Code.GET_OK : Code.GET_ERR;
+//        String msg =recordDetailList != null ? "" : "数据查询失败，请重试！";
+//        return  new Result(code,recordDetailList,msg);
     };
 
 }
