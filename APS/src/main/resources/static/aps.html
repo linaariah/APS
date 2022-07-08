@@ -139,7 +139,7 @@
                                     <el-input placeholder="请输入内容" style='width:220px;margin:0px 10px 10px 0px;'
                                         v-model.trim="newScheduleRecord.productionNumber">
                                     <!--排程记录按钮-->
-                                    <el-button slot="append" icon="el-icon-search" @click="dialogRecordVisible = true">排程记录</el-button>
+                                    <el-button slot="append" icon="el-icon-search" @click="openRecordList">排程记录</el-button>
                                     </el-input>
         
                                     <!--订单编号-->
@@ -264,7 +264,7 @@
                                           
     <!-- 添加一个搜索框模糊搜索待开发 -->
 
-    <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChange" height="450" v-loading="loading" ref="singleTable">
+    <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChangeRecord" height="450" v-loading="loading" ref="singleTable">
         <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
         <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
         <el-table-column prop="customerName" label="客户名称"></el-table-column>
@@ -290,7 +290,7 @@
                 <el-option v-for="item in modelNameList" :key="item.model" :label="item.model" :value="item.model">
                 </el-option>
             </el-select>
-            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChange" height="210" ref="singleTable2">
+            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChangePart" height="210" ref="singleTable2">
 
                 <el-table-column prop="partS" label="物料编号"></el-table-column>
                 <el-table-column prop="partSName" label="物料名称"></el-table-column>
@@ -565,7 +565,16 @@
             },
 
             //表格选中行
-            handleCurrentChange(val) {
+            handleCurrentChangeRecord(val) {
+                this.currentRow = val;
+                if(this.currentRow===null){
+                    return
+                }
+                else{
+                    this.newScheduleRecord.productionNumber=this.currentRow.productionNumber
+                }
+            },
+            handleCurrentChangePart(val) {
                 this.currentRow = val;
             },
 
@@ -580,6 +589,12 @@
                 this.newScheduleRecord.date = today;
             },
     
+            //打开生产排程记录
+            openRecordList() {
+                this.dialogRecordVisible = true,
+                this.newScheduleRecord.productionNumber = ''
+            },
+
             //  获取生产排程记录
             getRecordAll() {
                 axios({
@@ -634,7 +649,7 @@
             },
     
             //  生产排程记录弹窗查询与取消
-            recordConfirm() {
+            recordConfirm(row) {
                 this.dialogRecordVisible = false;
                 this.newScheduleRecord.productionNumber=this.currentRow.productionNumber
                 this.newScheduleRecord.orderNumber=this.currentRow.orderNumber
@@ -658,6 +673,7 @@
                     this.loading=true
                     setTimeout(() => {this.loading=false}, 800);
                 })
+                this.$refs.singleTable.setCurrentRow(row);
 
             },
             recordCancel(row) {
@@ -666,6 +682,7 @@
                     setTimeout(() => {this.loading=false}, 800);
                 this.dialogRecordVisible = false;
                 this.$refs.singleTable.setCurrentRow(row);
+                this.newScheduleRecord.productionNumber =''
                 this.getRecordDetailAll();
 
             },
@@ -673,8 +690,7 @@
 
             //删除生产排程记录
             deleteRecord() {
-                this.newScheduleRecord.productionNumber =''
-                
+                // console.log("delete按钮按下了",this.newScheduleRecord.productionNumber)
                 if(this.newScheduleRecord.productionNumber ===''){
                     this.$message({
                             message: '请选择要删除的数据',
@@ -682,9 +698,7 @@
                         })
                 }
                 else 
-                {
-                    this.newScheduleRecord.productionNumber = this.currentRow.productionNumber;
-                
+                {     
                 axios({
                     url: 'http://localhost:8080/deleteRecord',
                     method: 'POST',
