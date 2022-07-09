@@ -613,11 +613,12 @@
 
             // 获取生产排程详细记录
             getRecordDetailAll(){
+                this.currentPage=1
                 axios({
                     url: "http://localhost:8080//recordDetailList",
                     method: 'GET',
                     params:{
-                        current:1,
+                        current:this.currentPage,
                         productionNumber:''
                     }
                 }).then(res => {
@@ -669,13 +670,13 @@
                 this.newScheduleRecord.partName=this.currentRow.partName
                 this.newScheduleRecord.number=this.currentRow.number
                 this.newScheduleRecord.date=this.currentRow.date
-              
+                this.currentPage=1
 
                 axios({
                     url: "http://localhost:8080//recordDetailList",
                     method: 'GET',
                     params:{
-                        current:1,
+                        current:this.currentPage,
                         productionNumber:this.newScheduleRecord.productionNumber
 
                     }
