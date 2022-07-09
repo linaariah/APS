@@ -274,6 +274,19 @@ public class APSController {
     };
 
 
+    //查询所有的详细记录用于安排当天第二单以后的排程
+    //查询所有详细记录
+    @GetMapping("/recordDetailListForSchedule")
+    public Result getRecordDetailAllForSchedule(@RequestParam String date){
+        QueryWrapper<RecordDetail> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like("starttime",date);
+        List<RecordDetail> recordDetail = recordDetailDao.selectList(queryWrapper);
+        Integer code = recordDetail != null ? Code.GET_OK : Code.GET_ERR;
+        String msg =recordDetail != null ? "" : "数据查询失败，请重试！";
+        return  new Result(code,recordDetail,msg);
+        };
+
+
 
 
 }

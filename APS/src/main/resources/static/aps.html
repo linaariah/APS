@@ -176,10 +176,9 @@
                                     <el-date-picker v-model="newScheduleRecord.date" type="date" placeholder="选择日期"
                                         format="yyyy 年 MM 月 dd 日" value-format="yyyy-MM-dd"></el-date-picker>
         
-                                    <el-button @click="resetInput" style="margin-left: 37px">重置输入框</el-button>
-        
-                                    <el-button type="info" plain @click="dialogEquipmentVisible = true">设备信息查询
-                                    </el-button>
+                                        <el-button  @click="dialogEquipmentVisible = true">设备信息查询</el-button>
+                                    
+                                        <el-button type="success" @click="resetInput" style="margin-left: 37px">重置输入框</el-button>
         
                                     <el-button type="primary" @click="schedule">生产排程计算</el-button>
                                     </div>
@@ -203,7 +202,7 @@
                                     </div>
                                
                                     <el-table :data="recordDetailDataList" border style="width: 100%;" height="550"
-                                        v-loading="loading" :fit="true">
+                                        v-loading="loading" :fit="true"  stripe>
                                         <el-table-column label="序号" width="150" type="index" :index="indexAdd">
                                         </el-table-column>
                                         <el-table-column prop="productionNumber" label="生产任务单号"></el-table-column>
@@ -254,17 +253,23 @@
                      
             </el-main>
         </el-container>
-
-<!-- 页面元素END------------------------------------------------------------------------------------------------------- -->
-<!-- 页面元素END------------------------------------------------------------------------------------------------------- -->
 <!-- 内容表单+ 生产排程表 + 甘特图--------------------------------------------------------------------------------------- -->
+
+
 
   <!--Record排程记录弹出框-------------------------------------------->
   <el-dialog title="排程记录" :visible.sync="dialogRecordVisible" custom-class="customWidth1" :show-close="false">
                                           
-    <!-- 添加一个搜索框模糊搜索待开发 -->
+    <!-- 添加一个搜索框模糊搜索待开发！！！！！！！！！！！！！！！！！！！！！！！ -->
+    <el-input placeholder="请输入生产任务单号" v-model.trim="inputRecordSearch" clearable prefix-icon="el-icon-search" style='width:290px;margin:0px 10px 10px 0px;'></el-input>
+    <el-button type="success" >搜索</el-button>
+    
+    <el-tooltip class="item" effect="dark" content="请点击选择要删除的记录行后再删除" placement="right">
+        <el-button type="danger" @click="deleteRecord">删除</el-button>
+      </el-tooltip>
+    
 
-    <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChangeRecord" height="450" v-loading="loading" ref="singleTable">
+    <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChangeRecord" height="450" v-loading="loading" ref="singleTable"  stripe>
         <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
         <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
         <el-table-column prop="customerName" label="客户名称"></el-table-column>
@@ -275,8 +280,8 @@
         <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
     </el-table>
     <span slot="footer" class="dialog-footer">
-        <el-button type="danger" plain @click="deleteRecord">删除</el-button>
-        <el-button @click="recordCancel">取 消</el-button>
+        
+        <el-button @click="recordCancel">关 闭</el-button>
         <el-button type="primary" @click="recordConfirm">查 询</el-button>
     </span>
 </el-dialog>    
@@ -297,14 +302,14 @@
                 <el-table-column prop="model" label="所属规格型号"></el-table-column>
             </el-table>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="partCancel">取 消</el-button>
+                <el-button @click="partCancel">关 闭</el-button>
                 <el-button type="primary" @click="partConfirm">确 定</el-button>
             </span>
         </el-dialog>
 
 
 <!--Equipment设备信息查询弹出框-------------------------------------------------->
-        <el-dialog title="设备信息查询" :visible.sync="dialogEquipmentVisible" custom-class="customWidth3" :show-close="false">
+        <el-dialog title="设备信息查询" :visible.sync="dialogEquipmentVisible" custom-class="customWidth3" :show-close="false" >
             <!--下拉菜单-->
             <span style='color: #909399;font-weight:bolder;'>查询所属零件名称：</span>
             <el-select v-model="partname" placeholder="请选择" clearable @change="searchPartName">
@@ -313,7 +318,7 @@
                 </el-option>
             </el-select>
 
-            <el-table :data="equipmentDataList" height="450">
+            <el-table :data="equipmentDataList" height="450"  stripe>
                 <el-table-column prop="equipid" label="设备编号" width="100"></el-table-column>
                 <el-table-column prop="equipname" label="设备名称" width="180"></el-table-column>
                 <el-table-column prop="stationid" label="工位" width="140"></el-table-column>
@@ -347,6 +352,7 @@
             dialogEquipmentVisible: false,//设备信息查询
             loading: true,      //加载框
 
+            inputRecordSearch:'',//排程记录搜索框
             recordDataList: [],//排程记录
             recordDetailDataList: [],//生产排程对应详细表格
 
@@ -372,6 +378,7 @@
 
             pageTotal:1,//fenye
             currentPage:1,
+            firstSchedule:1
 
         },
 
@@ -662,6 +669,10 @@
             })
             },
             recordConfirm() {
+                if(this.newScheduleRecord.productionNumber===''){
+                    this.recordCancel();
+                }
+                else{
                 this.dialogRecordVisible = false;
                 this.newScheduleRecord.productionNumber=this.currentRow.productionNumber
                 this.newScheduleRecord.orderNumber=this.currentRow.orderNumber
@@ -673,7 +684,7 @@
                 this.currentPage=1
 
                 axios({
-                    url: "http://localhost:8080//recordDetailList",
+                    url: "http://localhost:8080/recordDetailList",
                     method: 'GET',
                     params:{
                         current:this.currentPage,
@@ -687,7 +698,7 @@
                     setTimeout(() => {this.loading=false}, 800);
                 })
                
-
+            }
             },
             recordCancel() {
                 this.resetInput();
@@ -798,8 +809,8 @@
                     method: 'GET'
                 }).then(res => {
                     this.equipmentDataList = res.data.data;
-                    var Equip = res.data.data;
-                        window.Equip = Equip;
+                    // var Equip = res.data.data;
+                    //     window.Equip = Equip;
                 }),
                     axios({
                         url: "http://localhost:8080/partNameList",
@@ -832,9 +843,28 @@
 //-------------------------------------------------------------------------------------
             //排程计算
             schedule() {
-                // return new Promise((resolve,reject) =>{
-                    
+            
+                   
 
+                    //判断是否是当日首场排程
+                    axios({
+                                url: "http://localhost:8080/recordDetailListForSchedule",
+                                method: 'GET',
+                                params: {
+                                    date: this.newScheduleRecord.date,
+                                }
+                            }).then(res => {
+                                if (res.data.data.length == 0) {
+                                    this.firstSchedule = 1
+                                    // console.log("进行当日首场生产排程计算", this.firstSchedule)
+                                }//当日首场排程逻辑结束
+                                else {
+                                    this.firstSchedule = 0
+                                    // console.log("第二场及以后排程计算", this.firstSchedule)
+                                }
+
+                            })
+                  
                 if (this.newScheduleRecord.productionNumber == '') {
                     this.$message.error('请输入生产任务单号');
                 }
@@ -845,16 +875,26 @@
                     this.$message.error('请选择排产日期');
                 }
                 else {
-                    
-                    console.log('生产任务单号:', this.newScheduleRecord.productionNumber);
-                    console.log('订单编号:', this.newScheduleRecord.orderNumber);
-                    console.log('客户名称:', this.newScheduleRecord.customerName);
-                    console.log('物料编号:', this.newScheduleRecord.partNo);
-                    console.log('物料名称:', this.newScheduleRecord.partName);
-                    console.log('需求数量:', this.newScheduleRecord.number);
-                    console.log('排产日期:', this.newScheduleRecord.date);
-                    console.log('创建时间:', this.newScheduleRecord.createTime);
+                    // -----------------------------------------------------------------------------
+                    this.$message('计算中，请稍后……');
 
+                    axios({
+                    url: "http://localhost:8080/equipmentList",
+                    method: 'GET'
+                }).then(res => {
+                    var Equip = res.data.data;
+
+//------------------------------------------------------------------------------------------Equip读取
+                    // console.log('生产任务单号:', this.newScheduleRecord.productionNumber);
+                    // console.log('订单编号:', this.newScheduleRecord.orderNumber);
+                    // console.log('客户名称:', this.newScheduleRecord.customerName);
+                    // console.log('物料编号:', this.newScheduleRecord.partNo);
+                    // console.log('物料名称:', this.newScheduleRecord.partName);
+                    // console.log('需求数量:', this.newScheduleRecord.number);
+                    // console.log('排产日期:', this.newScheduleRecord.date);
+                    // console.log('创建时间:', this.newScheduleRecord.createTime);
+                    // this.getEquipmentAll();
+                    // console.log("计算前设备数据",Equip)
                     //提交表单
                     axios({
                         url: 'http://localhost:8080/addRecord',
@@ -863,9 +903,10 @@
                     }).then(res => {
 
                         if (res.data.code == 20011) {
-                            this.$message('计算中，请稍后……');
 
-                    //当日首计划逻辑-------------------------------------------------------------------------------------------------------------
+                            
+                                
+                                //当日首计划逻辑-------------------------------------------------------------------------------------------------------------
 
                     var timeEndList1 = [] //3.5级
                     var timeEndList2 = [] //3.4级
@@ -881,7 +922,7 @@
                         {
                             if (Equip[i].processorder === 1) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
@@ -906,7 +947,8 @@
 
                             else if (Equip[i].processorder === 2) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[0] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[0] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[0] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
@@ -928,7 +970,8 @@
 
                             else if (Equip[i].processorder === 3) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[1] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[1] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[1] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
@@ -950,7 +993,8 @@
 
                             else if (Equip[i].processorder === 4) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[2] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[2] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[2] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
@@ -972,7 +1016,8 @@
                             
                             else if (Equip[i].processorder === 5) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[3] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[3] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[3] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
@@ -994,7 +1039,8 @@
 
                             else if (Equip[i].processorder === 6) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[4] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[4] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[4] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
@@ -1016,7 +1062,8 @@
 
                             else if (Equip[i].processorder === 7) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[5] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[5] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[5] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
@@ -1038,7 +1085,8 @@
 
                             else if (Equip[i].processorder === 8) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[6] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[6] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[6] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
@@ -1060,7 +1108,8 @@
 
                             else if (Equip[i].processorder === 9) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[7] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[7] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[7] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/8                    //毫秒，每台设备不一致
@@ -1082,7 +1131,8 @@
 
                             else if (Equip[i].processorder === 10) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[8] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[8] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[8] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
@@ -1104,7 +1154,8 @@
 
                             else if (Equip[i].processorder === 11) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList1[9] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[9] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList1[9] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
@@ -1131,7 +1182,7 @@
 
                             if (Equip[i].processorder === 1) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
@@ -1159,7 +1210,8 @@
 
                             else if (Equip[i].processorder === 2) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList2[0] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList2[0] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList2[0] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
@@ -1188,7 +1240,7 @@
 
                             if (Equip[i].processorder === 1) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                 //毫秒，每台设备不一致
@@ -1216,7 +1268,8 @@
 
                             else if (Equip[i].processorder === 2) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList3[0] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList3[0] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList3[0] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
@@ -1244,7 +1297,7 @@
                         {
                             if (Equip[i].processorder === 1) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                 //毫秒，每台设备不一致
@@ -1272,7 +1325,8 @@
 
                             else if (Equip[i].processorder === 2) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList4[0] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList4[0] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList4[0] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
@@ -1300,7 +1354,7 @@
 
                             if (Equip[i].processorder === 1) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeDate + ' ' + '08:30:00' //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                 //毫秒，每台设备不一致
@@ -1328,7 +1382,8 @@
 
                             else if (Equip[i].processorder === 2) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList5[0] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[0] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList5[0] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
@@ -1352,7 +1407,8 @@
 
                             else if (Equip[i].processorder === 3) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList5[1] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[1] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList5[1] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
@@ -1375,7 +1431,8 @@
                             } //if order层
                             else if (Equip[i].processorder === 4) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList5[2] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[2] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList5[2] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
@@ -1398,7 +1455,8 @@
                             } //if order层
                             else if (Equip[i].processorder === 5) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList5[3] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[3] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList5[3] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
@@ -1421,7 +1479,8 @@
                             } //if order层
                             else if (Equip[i].processorder === 6) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList5[4] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[4] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList5[4] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
@@ -1444,7 +1503,8 @@
                             } //if order层
                             else if (Equip[i].processorder === 7) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList5[5] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[5] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList5[5] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
@@ -1467,7 +1527,8 @@
                             } //if order层
                             else if (Equip[i].processorder === 8) {
                                 let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 = timeEndList5[6] //3级设备加工开始时间字符串
+                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[6] : Equip[i].endtime //3级设备加工开始时间字符串
+                                // let timeStart3 = timeEndList5[6] //3级设备加工开始时间字符串
                                 let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
                                 //时间戳加工时间计算
                                 let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
@@ -1636,7 +1697,7 @@
                     method: 'GET'
                 }).then(res => {
                     var Equip2 = res.data.data;
-                    console.log(Equip2)
+                    // console.log("计算后数据",Equip2)
 
                     for (var j = 0; j < Equip.length; j++) {
                         let recordDetail = {}
@@ -1672,9 +1733,23 @@
                     setTimeout(() => {this.loading=false}, 1000);
 
                 })//finally
+                                
+                                
+                      
+
+
+
+                    
 
 
                         }  //if (res.data.code == 20011) End
+
+
+
+
+
+
+                        //----------------------------------------------------------首计划逻辑
 
                         else {
                             this.$message.error('该生产任务单号已经存在！请重新输入！');
@@ -1684,12 +1759,17 @@
                             
                         });//finally
 
-                    
-                } //else
-            
-            // })//promise
+                    })//------------------------------------------------------------------------------------------Equip读取
 
-            // this.resetInput()
+
+
+
+                } //else
+                 // ----------------------------------------------------------------------------- 
+            
+         
+
+            
             },
 
         
