@@ -57,7 +57,7 @@ public class APSController {
     public Result getEquipmentAll(){
         QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("equipid","equipname","stationid","processname","ct","level","processorder","partname","starttime","endtime");
-        queryWrapper.orderBy(true,false,"level").orderBy(true,true,"processorder");
+        queryWrapper.orderBy(true,false,"level").orderBy(true,true,"processorder").orderBy(true,true,"equipid");
         List<Equipment> equipmentList = equipmentDao.selectList(queryWrapper);
         Integer code = equipmentList != null ? Code.GET_OK : Code.GET_ERR;
         String msg = equipmentList != null ? "" : "数据查询失败，请重试！";
@@ -208,6 +208,15 @@ public class APSController {
         Integer code = recordList != null ? Code.GET_OK : Code.GET_ERR;
         String msg =recordList != null ? "" : "数据查询失败，请重试！";
         return  new Result(code,recordList,msg);
+    };
+
+    @GetMapping("/recordListSearch")
+    public List<Record> searchrecordList(@RequestParam String productionNumber,@RequestParam String date){
+        QueryWrapper<Record> wrapper = new QueryWrapper<>();
+        wrapper.like("production_number",productionNumber);
+        wrapper.like("date",date);
+        List<Record> recordList = recordDao.selectList(wrapper);
+        return recordList;
     };
 
     //生产排程添加详细记录----------------------------------------------------------
