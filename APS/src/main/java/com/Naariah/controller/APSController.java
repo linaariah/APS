@@ -189,17 +189,21 @@ public class APSController {
 
     //生产排程删除记录------------------------------------------------------------------------------
     @PostMapping("/deleteRecord")
-    public Result deleteRecord(@RequestBody Record record){
-        int result = recordDao.deleteById(record.getProductionNumber());
-        boolean flag;
-        if (result == 1){
-            flag = true;
-        }
-        else{
-            flag=false;
-        }
-        return new Result(flag ? Code.DELETE_OK:Code.DELETE_ERR,flag);
-    }
+    public void  deleteRecord(@RequestBody Record record){
+//        int result = recordDao.deleteById(record.getProductionNumber());
+//        boolean flag;
+//        if (result == 1){
+//            flag = true;
+//        }
+//        else{
+//            flag=false;
+//        }
+//        return new Result(flag ? Code.DELETE_OK:Code.DELETE_ERR,flag);
+        QueryWrapper queryWrapper = new QueryWrapper<Record>();
+//        queryWrapper.eq("production_number",record.getProductionNumber());
+        queryWrapper.like("date",record.getDate());
+        recordDao.delete(queryWrapper);
+    };
 
     //生产排程查询记录-----------------------------------------------------------------------
     @GetMapping("/recordList")
@@ -239,7 +243,8 @@ public class APSController {
     @PostMapping("/deleteRecordDetail")
     public void deleteRecordDetail(@RequestBody Record record){
         QueryWrapper queryWrapper = new QueryWrapper<Record>();
-        queryWrapper.eq("production_number",record.getProductionNumber());
+//        queryWrapper.eq("production_number",record.getProductionNumber());
+        queryWrapper.like("starttime",record.getDate());
         recordDetailDao.delete(queryWrapper);
 
     };
@@ -272,14 +277,45 @@ public class APSController {
             return pageInfo;
         }
         else{
-        recordDetailDao.selectPage(page,queryWrapper);
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setCurrent(page.getCurrent());
-        pageInfo.setPages(page.getPages());
-        pageInfo.setTotal(page.getTotal());
-        pageInfo.setData(page.getRecords());
+            recordDetailDao.selectPage(page,queryWrapper);
+            PageInfo pageInfo = new PageInfo();
+            pageInfo.setCurrent(page.getCurrent());
+            pageInfo.setPages(page.getPages());
+            pageInfo.setTotal(page.getTotal());
+            pageInfo.setData(page.getRecords());
             return pageInfo;
         }
+    };
+
+
+    //查询所有详细记录
+    @GetMapping("/recordDetailListSearch")
+    public PageInfo getRecordDetailSearch(@RequestParam Long current,@RequestParam String productionNumber,@RequestParam String model,@RequestParam String number,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String starttime,@RequestParam String endtime){
+        //1 创建IPage分页对象,设置分页参数,1为当前页码，10为每页显示的记录数
+        IPage<RecordDetail> page=new Page<>(current,10);
+        QueryWrapper<RecordDetail> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.like("production_number",productionNumber);
+        queryWrapper.like("model",model);
+        queryWrapper.like("number",number);
+        queryWrapper.like("equipid",equipid);
+        queryWrapper.like("equipname",equipname);
+        queryWrapper.like("starttime",starttime);
+        queryWrapper.like("endtime",endtime);
+
+        queryWrapper.orderByAsc("production_number");
+        queryWrapper.orderByAsc("equipid");
+
+
+        //2 执行分页查询
+            recordDetailDao.selectPage(page,queryWrapper);
+            PageInfo pageInfo = new PageInfo();
+            pageInfo.setCurrent(page.getCurrent());
+            pageInfo.setPages(page.getPages());
+            pageInfo.setTotal(page.getTotal());
+            pageInfo.setData(page.getRecords());
+            return pageInfo;
+
     };
 
 
