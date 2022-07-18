@@ -5,12 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 @Data
-public class Equipment {
+public class Model {
     @TableId(type = IdType.INPUT)
-    private String equipid;
-    private String equipname;
-    private String workshopid;
-    private String lineid;
-    private String stationid;
-
+    private String model;
 }

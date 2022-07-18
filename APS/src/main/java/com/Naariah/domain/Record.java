@@ -11,8 +11,7 @@ public class Record {
     private String productionNumber;
     private String orderNumber;
     private String customerName;
-    private String partNo;
-    private String partName;
+    private String model;
     private Integer number;
     private String date;
     private String createTime;

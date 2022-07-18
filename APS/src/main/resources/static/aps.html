@@ -26,14 +26,14 @@
     /*}*/
     /*center class="roll-dialog"*/
 
-    .customWidth1 {
-        width: 1100px;
+    .dialogRecordVisible {
+        width: 1000px;
     }
-    .customWidth2 {
-        width: 800px;
+    .dialogModelVisible {
+        width: 600px;
     }
-    .customWidth3 {
-        width: 1100px;
+    .dialogEquipmentVisible {
+        width: 90%;
     }
 
     .header {
@@ -140,7 +140,7 @@
                                     <el-input placeholder="请输入内容" style='width:220px;margin:0px 10px 10px 0px;'
                                         v-model.trim="newScheduleRecord.productionNumber">
                                     <!--排程记录按钮-->
-                                    <el-button slot="append" icon="el-icon-search" @click="openRecordList">排程记录</el-button>
+                                    <el-button slot="append" icon="el-icon-search" @click="openRecord">排程记录</el-button>
                                     </el-input>
         
                                     <!--订单编号-->
@@ -153,36 +153,36 @@
                                     <el-input placeholder="可以为空" style='width:90px;margin:0px 10px 10px 0px;'
                                         v-model.trim="newScheduleRecord.customerName"></el-input>
         
-                                    <!--物料编号-->
-                                    <span style='color: #909399;font-weight:bolder;'>物料编号：</span>
-                                    <el-input :disabled="true" placeholder="需生产排程的物料"
-                                        style='width:266px;margin:0px 10px 10px 0px;' v-bind:value="newScheduleRecord.partNo">
-                                    <el-button slot="append" icon="el-icon-search" @click="openPartList">选择物料</el-button>
+                                    <!--产品型号-->
+                                    <span style='color: #909399;font-weight:bolder;'>产品型号：</span>
+                                    <el-input :disabled="true" placeholder="需生产排程的产品"
+                                        style='width:266px;margin:0px 10px 10px 0px;' v-bind:value="newScheduleRecord.model">
+                                    <el-button slot="append" icon="el-icon-search" @click="openModel">选择型号</el-button>
                                     </el-input>
         
-                                    <!--物料名称-->
+                                    <!-- 物料名称
                                     <span style='color: #909399;font-weight:bolder;'>物料名称：</span>
                                     <el-input :disabled="true" style='width:190px;margin:0px 10px 10px 0px;'
-                                        v-bind:value="newScheduleRecord.partName"></el-input>
-                                    </br>
-        
-                                    <!--需求数量 div控制间隔------------->
-                                    <div style="margin-top: 25px;">
+                                        v-bind:value="newScheduleRecord.partName"></el-input> -->
+                                    
+                                     <!--需求数量  -->
                                     <span style='color: #909399;font-weight:bolder;'>需求数量：</span>
                                     <el-input-number :min="1" :max="1000" v-model="newScheduleRecord.number" :step="100">
                                     </el-input-number>
-        
-        
+                                </br>
+
+                                <!--排产日期 div控制间隔------------->
+                                <div style="margin-top: 25px;">
                                     <span style='color: #909399;font-weight:bolder;margin-left: 10px'>排产日期：</span>
                                     <el-date-picker v-model="newScheduleRecord.date" type="date" placeholder="选择日期"
                                         format="yyyy 年 MM 月 dd 日" value-format="yyyy-MM-dd"></el-date-picker>
         
-                                        <el-button  @click="dialogEquipmentVisible = true" style="margin-left: 37px">设备信息查询</el-button>
+                                        <el-button  @click="openEquipmentBom" style="margin-left: 37px">设备信息Bom表</el-button>
                                     
-                                        <el-button type="success" @click="resetInput" style="margin-left: 57px">重置输入框</el-button>
+                                        <el-button type="success" @click="newScheduleRecordResetInput" style="margin-left: 57px">重置输入框</el-button>
         
-                                    <el-button type="primary" @click="schedule" :loading="scheduleButton">生产排程计算</el-button>
-                                    <!-- v-loading.fullscreen.lock="fullscreenLoading"  全屏加载 -->
+                                    <el-button type="primary" :loading="scheduleButton">生产排程计算</el-button>
+                                    
                                     </div>
                                 </div>
                             </div>
@@ -204,41 +204,41 @@
                                     </div>
                                     
                                     <span style='color: #909399;font-size: small;'>生产任务单号：</span>
-                                    <el-input placeholder="请输入生产任务单号" v-model.trim="searchRecordDetail.productionNumber" prefix-icon="el-icon-search"
+                                    <el-input placeholder="请输入生产任务单号" v-model.trim="searchRecordDetailList.productionNumber" prefix-icon="el-icon-search"
                                         style='width:190px;margin:0px 10px 10px 0px;'></el-input>
                                     
                                     <span style='color: #909399;font-size: small;'>加工型号：</span>
-                                    <el-input placeholder="请输入加工型号" v-model.trim="searchRecordDetail.model" style='width:200px;margin:0px 10px 10px 0px;'>
+                                    <el-input placeholder="请输入加工型号" v-model.trim="searchRecordDetailList.model" style='width:200px;margin:0px 10px 10px 0px;'>
                                     </el-input>
                                     
                                     <span style='color: #909399;font-size: small;'>需求数量：</span>
-                                    <el-input placeholder="请输入需求数量" v-model.trim="searchRecordDetail.number" style='width:130px;margin:0px 10px 10px 0px;'>
+                                    <el-input placeholder="请输入需求数量" v-model.trim="searchRecordDetailList.number" style='width:130px;margin:0px 10px 10px 0px;'>
                                     </el-input>
                                     
                                     <span style='color: #909399;font-size: small;'>设备编号：</span>
-                                    <el-input placeholder="请输入设备编号" v-model.trim="searchRecordDetail.equipid" style='width:140px;margin:0px 10px 10px 0px;'>
+                                    <el-input placeholder="请输入设备编号" v-model.trim="searchRecordDetailList.equipid" style='width:140px;margin:0px 10px 10px 0px;'>
                                     </el-input>
                                     
                                     <span style='color: #909399;font-size: small;'>设备名称：</span>
-                                    <el-input placeholder="请输入设备名称" v-model.trim="searchRecordDetail.equipname"
+                                    <el-input placeholder="请输入设备名称" v-model.trim="searchRecordDetailList.equipname"
                                         style='width:190px;margin:0px 10px 10px 0px;'></el-input>
                                     
                                     <div style="margin-top: 10px;font-size: small;">
                                         <span style='color: #909399;'>开始加工时间：</span>
-                                        <el-input placeholder="yyyy-MM-dd HH:mm:ss" v-model="searchRecordDetail.starttime"
+                                        <el-input placeholder="yyyy-MM-dd HH:mm:ss" v-model="searchRecordDetailList.starttime"
                                             style='width:190px;margin:0px 10px 10px 0px;'></el-input>
                                     
                                         <span style='color: #909399;font-size: small;'>结束加工时间：</span>
-                                        <el-input placeholder="yyyy-MM-dd HH:mm:ss" v-model="searchRecordDetail.endtime"
+                                        <el-input placeholder="yyyy-MM-dd HH:mm:ss" v-model="searchRecordDetailList.endtime"
                                             style='width:190px;margin:0px 10px 10px 0px;'></el-input>
-                                        <el-button type="primary" plain icon="el-icon-delete" style="margin-left: 30px;" @click="getRecordDetailClear">清空</el-button>
-                                        <el-button type="primary" plain icon="el-icon-search" @click="getRecordDetailSearch">搜索</el-button>
+                                        <el-button type="primary" plain icon="el-icon-refresh-right" style="margin-left: 30px;" @click="clearRecordDetail">重置</el-button>
+                                        <el-button type="primary" plain icon="el-icon-search" @click="searchRecordDetail">搜索</el-button>
                                     </div>
 
 
 
                                     <el-table :data="recordDetailDataList" border style="width: 100%;" height="550"
-                                        v-loading="loading" :fit="true"  stripe>
+                                        v-loading="loadingRecordDetail" :fit="true"  stripe>
                                         <el-table-column label="序号" width="150" type="index" :index="indexAdd">
                                         </el-table-column>
                                         <el-table-column prop="productionNumber" label="生产任务单号"></el-table-column>
@@ -248,7 +248,7 @@
                                         <el-table-column prop="equipname" label="设备名称"></el-table-column>
                                         <el-table-column prop="starttime" label="开始加工时间"></el-table-column>
                                         <el-table-column prop="endtime" label="结束加工时间"></el-table-column>
-                                        <!-- <el-table-column prop="production_number" label="排产日期" width="150"></el-table-column> -->
+                                        
                                         
         
                                     </el-table>
@@ -295,14 +295,13 @@
 
 
   <!--Record排程记录弹出框-------------------------------------------->
-  <el-dialog title="排程记录" :visible.sync="dialogRecordVisible" custom-class="customWidth1" :show-close="false">
+  <el-dialog title="排程记录" :visible.sync="dialogRecordVisible" custom-class="dialogRecordVisible">
     <div style="margin-bottom:20px ;">
         <span style='color: #909399;font-weight:bolder;'>提示：若要重新排程进行删除操作时，请删除当天所有的排程计划，再重新排程当天计划!</span>
         <span style='color: #909399;font-weight:bolder;'></span>
       </div>                               
     <!-- 添加一个搜索框模糊搜索 -->
     <el-input placeholder="请输入生产任务单号" v-model.trim="inputRecordSearch1" clearable prefix-icon="el-icon-search" style='width:250px;margin:0px 10px 10px 0px;'></el-input>
-    <!-- <el-input placeholder="请输入生产任务单号" v-model.trim="inputRecordSearch" clearable prefix-icon="el-icon-search" style='width:250px;margin:0px 10px 10px 0px;'></el-input> -->
     <el-date-picker v-model="inputRecordSearch2" type="date" placeholder="选择日期" value-format="yyyy-MM-dd"></el-date-picker>
     
     
@@ -313,24 +312,24 @@
       </el-tooltip>
      
     
-    <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChangeRecord" height="380" v-loading="loadingRecord" ref="singleTable"  stripe>
-        <el-table-column prop="productionNumber" label="生产任务单号" width="120"></el-table-column>
-        <el-table-column prop="orderNumber" label="订单编号" width="100"></el-table-column>
+    <el-table :data="recordDataList" highlight-current-row @current-change="handleCurrentChangeRecord" height="380" v-loading="loadingRecord" ref="singleTableRecord"  stripe fit>
+        <el-table-column prop="productionNumber" label="生产任务单号"></el-table-column>
+        <el-table-column prop="orderNumber" label="订单编号" ></el-table-column>
         <el-table-column prop="customerName" label="客户名称"></el-table-column>
-        <el-table-column prop="partNo" label=" 物料编号" width="150"></el-table-column>
-        <el-table-column prop="partName" label="物料名称" width="160"></el-table-column>
-        <el-table-column prop="number" label="需求数量" width="100"></el-table-column>
-        <el-table-column prop="date" label="排产日期" width="100"></el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="200"></el-table-column>
+        <el-table-column prop="model" label="产品型号"></el-table-column>
+        <!-- <el-table-column prop="partName" label="物料名称" width="160"></el-table-column> -->
+        <el-table-column prop="number" label="需求数量"></el-table-column>
+        <el-table-column prop="date" label="排产日期"></el-table-column>
+        <el-table-column prop="createTime" label="创建时间" width="160"></el-table-column>
     </el-table>
     <span slot="footer" class="dialog-footer">
         
-        <el-button @click="recordCancel">关 闭</el-button>
-        <el-button type="primary" @click="recordConfirm">查 询</el-button>
+        <el-button @click="closeRecord">关 闭</el-button>
+        <el-button type="primary" @click="confirmRecord">查 询</el-button>
     </span>
 </el-dialog>
 
-<!-- record 删除记录确认弹出框 -->
+<!-- Record 删除记录确认弹出框 -->
 <el-dialog title="提示" :visible.sync="dialogRecordDeleteVisible" width="500px" :show-close="false">
     <i class="el-icon-warning"></i>
   <span>此操作将永久删除</span>
@@ -345,59 +344,128 @@
 
 
 
-<!--Part选择物料弹出框----------------------------------------------------------->
-        <el-dialog title="生产排程物料选择" :visible.sync="dialogPartVisible" :show-close="false" :fit="true" custom-class="customWidth2">
-            <!--下拉菜单-->
-            <span style='color: #909399;font-weight:bolder;'>查询所属零件名称：</span>
-            <el-select v-model="modelname" placeholder="请选择" clearable @change="searchModelName">
-                <el-option v-for="item in modelNameList" :key="item.model" :label="item.model" :value="item.model">
-                </el-option>
-            </el-select>
-            <el-table :data="partDataList" highlight-current-row @current-change="handleCurrentChangePart" height="210" ref="singleTable2">
+<!--Model选择弹出框----------------------------------------------------------->
+        <el-dialog title="产品型号选择" :visible.sync="dialogModelVisible" :show-close="false" :fit="true" custom-class="dialogModelVisible">
+            <el-table :data="modelDataList" highlight-current-row @current-change="handleCurrentChangeModel" height="210" ref="singleTableModel" :header-cell-style="{'text-align':'center'}"
+            :cell-style="{'text-align':'center'}">
 
-                <el-table-column prop="partS" label="物料编号"></el-table-column>
-                <el-table-column prop="partSName" label="物料名称"></el-table-column>
-                <el-table-column prop="model" label="所属规格型号"></el-table-column>
+                <el-table-column  label="序号" type="index" width="150"></el-table-column>
+                <el-table-column prop="model" label="产品型号"></el-table-column>
             </el-table>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="partCancel">关 闭</el-button>
-                <el-button type="primary" @click="partConfirm">确 定</el-button>
+                <el-button @click="closeModel">关 闭</el-button>
+                <el-button type="primary" @click="confirmModel">确 定</el-button>
             </span>
         </el-dialog>
 
 
-<!--Equipment设备信息查询弹出框-------------------------------------------------->
-        <el-dialog title="设备信息查询" :visible.sync="dialogEquipmentVisible" custom-class="customWidth3" :show-close="false" >
-            <!--下拉菜单-->
-            <span style='color: #909399;font-weight:bolder;'>查询所属零件名称：</span>
-            <el-select v-model="partname" placeholder="请选择" clearable @change="searchPartName">
-                <el-option v-for="item in partNameList" :key="item.partname" :label="item.partname"
-                    :value="item.partname">
-                </el-option>
-            </el-select>
+        <!--EquipmentBom设备信息查询弹出框-------------------------------------------------->
+        <el-dialog title="设备信息Bom表" :visible.sync="dialogEquipmentVisible" custom-class="dialogEquipmentVisible">
+        
+            <span style='color: #909399;font-weight:bolder;'>产品型号：</span>
+            <el-input placeholder="请输入产品型号" style='width:150px;margin:0px 10px 10px 0px;' v-model.trim="newEquipmentBom.model">
+            </el-input>
+        
+            <span style='color: #909399;font-weight:bolder;'>设备名称：</span>
+            <el-input :disabled="true" placeholder="请选择加工的设备" style='width:270px;margin:0px 10px 10px 0px;'
+                v-model="newEquipmentBom.equipname">
+                <el-button slot="append" icon="el-icon-search" @click="chooseEquipment">选择设备</el-button>
+            </el-input>
+        
+            <span style='color: #909399;font-weight:bolder;'>设备编号：</span>
+            <el-input :disabled="true" placeholder="请选择加工的设备" style='width:170px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.equipid">
+            </el-input>
+        
+            <span style='color: #909399;font-weight:bolder;'>工序名称：</span>
+            <el-input style='width:150px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.processname" placeholder="请输入工序名称">
+            </el-input>
+        
+            <span style='color: #909399;font-weight:bolder;'>节拍时间(/s)：</span>
+            <el-input style='width:110px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.ct " oninput ="value=value.replace(/[^\d]/g,'')" placeholder="请输入节拍"></el-input>
+        </br>
 
-            <el-table :data="equipmentDataList" height="450"  stripe>
-                <el-table-column prop="equipid" label="设备编号" width="100"></el-table-column>
-                <el-table-column prop="equipname" label="设备名称" width="180"></el-table-column>
-                <el-table-column prop="stationid" label="工位" width="140"></el-table-column>
-                <el-table-column prop="processname" label="工序" width="140"></el-table-column>
-                <el-table-column prop="ct" label="节拍/s"></el-table-column>
+        <div style="margin-top: 25px;">
+            <span style='color: #909399;font-weight:bolder;'>零件名称：</span>
+            <el-input style='width:150px;margin:0px 10px 10px 0px;' v-model.trim="newEquipmentBom.part" placeholder="请输入零件名称"></el-input>
+        
+            <span style='color: #909399;font-weight:bolder;'>加工等级：</span>
+            <el-input style='width:100px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.level" oninput ="value=value.replace(/[^\d]/g,'')" placeholder="如1、2……"></el-input>
+        
+            <span style='color: #909399;font-weight:bolder;'>该等级的零件序号：</span>
+            <el-input style='width:100px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.levelnumber" oninput ="value=value.replace(/[^\d]/g,'')" placeholder="如1、2……">
+            </el-input>
+        
+            <span style='color: #909399;font-weight:bolder;'>该等级该零件序号的加工次序：</span>
+            <el-input style='width:100px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.processorder" oninput ="value=value.replace(/[^\d]/g,'')" placeholder="如1、2……">
+            </el-input>
+            
+            <el-button type="primary" plain icon="el-icon-refresh-right" @click="resetEquipmentBom" style="margin-left: 21px;">重置</el-button>
+            <el-button type="primary" plain icon="el-icon-edit" @click="addEquipmentBom">添加</el-button>
+            <el-button type="primary" plain icon="el-icon-search" @click="searchEquipmentBom">搜索</el-button>
+        </div>
+        
+            <el-table :data="equipmentBomDataList" height="450" stripe fit @current-change="handleCurrentEquipmentBomChange" highlight-current-row ref="singleTableEquipmentBom">
+                <el-table-column prop="model" label="产品型号" ></el-table-column>
+                <el-table-column prop="equipid" label="设备编号"></el-table-column>
+                <el-table-column prop="equipname" label="设备名称" width="220px"></el-table-column>
+                <el-table-column prop="processname" label="工序名称"></el-table-column>
+                <el-table-column prop="ct" label="节拍时间(/s)"></el-table-column>
+                <el-table-column prop="part" label="零件名称"></el-table-column>
                 <el-table-column prop="level" label="加工等级"></el-table-column>
+                <el-table-column prop="levelnumber" label="零件序号"></el-table-column>
                 <el-table-column prop="processorder" label="加工次序"></el-table-column>
-                <el-table-column prop="partname" label="所属零件名称" width="150"></el-table-column>
+                 <!-- <span style='color: #909399;font-weight:bolder;'>物料名称：</span>
+            <el-input :disabled="true" style='width:190px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.partno" type="number"></el-input>
+            <span style='color: #909399;font-weight:bolder;'>物料编号：</span>
+            <el-input :disabled="true" style='width:190px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.partname" type="number"></el-input> -->
             </el-table>
+        
             <span slot="footer" class="dialog-footer">
-                <el-button type="info" @click="eHide">隐 藏</el-button>
+                    <el-popover placement="top" width="160" v-model="visible">
+                        <i class="el-icon-warning"></i><span>该设备信息Bom数据确认删除吗？</span>
+                        
+                    <div style="text-align: right; margin: 0">
+                      <el-button size="mini" type="text" @click="visible = false">取消</el-button>
+                      <el-button type="primary" size="mini" @click="deleteEquipmentBom">确定</el-button>
+                    </div>    
+                    <el-button type="danger" plain icon="el-icon-delete" style="margin-right: 32px;" slot="reference">删 除</el-button>  
+            </el-popover>
+
+                <el-button type="info" @click="closeDialogEquipmentVisible">关 闭</el-button>
             </span>
         </el-dialog>
 
+        <!-- 选择设备弹出框 -->
+        <el-dialog title="设备选择" :visible.sync="dialogEquipmentChooseVisible">
+
+            <el-table :data="equipmentDataList" height="450" stripe highlight-current-row @current-change="handleCurrentEquipmentChooseChange" fit>
+                
+                <el-table-column prop="equipid" label="设备编号"></el-table-column>
+                <el-table-column prop="equipname" label="设备名称"></el-table-column>
+                <el-table-column prop="workshopid" label="车间"></el-table-column>
+                <el-table-column prop="lineid" label="生产线"></el-table-column>
+                <el-table-column prop="stationid" label="工位"></el-table-column>
+              
+            </el-table>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="success" @click="EquipmentChooseConfirm">确 认</el-button>
+            </span>
+
+        </el-dialog>
 
 
 
         
 
-    </div>
 
+
+
+
+
+
+
+
+    </div>
 </body>
 
 
@@ -405,42 +473,27 @@
     var app = new Vue({
         el: '#app',
         data: {
-            dialogRecordVisible: false,//生产排程记录
-            dialogPartVisible: false,//物料选择
-            dialogEquipmentVisible: false,//设备信息查询
-            dialogRecordDeleteVisible:false,//删除记录确认
-            loading: true,      //加载框
-            loadingRecord: false,
-            fullscreenLoading: false,
-            scheduleButton:false,//排程按钮状态
-
-            inputRecordSearch1:'',//排程记录搜索框
-            inputRecordSearch2:'',
-            recordDataList: [],//排程记录
-            recordDetailDataList: [],//生产排程对应详细表格
-
-            partDataList: [],//选择物料
-            modelNameList: [],//所属产品型号
-            modelname: '',//选择器显示
-
-
-            equipmentDataList: [],//设备信息查询
-            partNameList: [],//所属零件名称表
-            partname: '',//选择器显示
-
+             // ----------------------排程单
             newScheduleRecord: {
                 productionNumber: '',//生产任务单号
                 orderNumber: '',//订单编号
                 customerName: '',//客户名称
-                partNo: '',//物料编号
-                partName: '',//物料名称
+                model: '',//产品型号
+                // partName: '',//物料名称
                 number: 100, //需求数量
                 date:'',//排产日期
                 createTime: '',//创建时间
             },
+           
+            dialogRecordVisible: false,//排程记录
+            inputRecordSearch1:'',//排程记录搜索框
+            inputRecordSearch2:'',
+            recordDataList: [],//排程记录
+            loadingRecord: true,
+            dialogRecordDeleteVisible:false,//删除记录确认
 
             //详细排程搜索框
-            searchRecordDetail:{
+            searchRecordDetailList:{
                 productionNumber: '',//生产任务单号
                 model:'',
                 number:'',
@@ -448,14 +501,38 @@
                 equipname:'',
                 starttime:'',
                 endtime:'',
-                
-               
-
             },
+            recordDetailDataList: [],//生产排程对应详细表格
+            loadingRecordDetail: true,      //加载框
 
-            pageTotal:1,//fenye
+            modelDataList: [],//选择型号
+            dialogModelVisible: false,//选择型号对话框
+            
+            dialogEquipmentVisible: false,//设备信息编辑
+            newEquipmentBom:{
+                model:'',
+                eqipid:'',
+                equipname:'',
+                processname:'',
+                ct:'',
+                level:'',
+                levelnumber:'',
+                processorder:'',
+                part:'',
+            },
+            dialogEquipmentChooseVisible: false, //选择设备
+            equipmentDataList: [],//设备信息查询
+            equipmentBomDataList: [],//设备信息Bom表查询
+            visible: false,//popConfirm气泡
+
+            scheduleButton:false,//排程按钮加载状态
+
+            pageTotal:1,//分页
             currentPage:1,
-            firstSchedule:1
+
+            firstSchedule:1,
+            
+            
 
         },
 
@@ -463,139 +540,19 @@
         //钩子函数，VUE对象初始化完成后自动执行
         created() {
             this.dateFormat();
-            this.getRecordAll();
-            this.getEquipmentAll();
-            this.getPartAll();
-            this.getRecordDetailAll();
-        setTimeout(() => {this.loading=false}, 1500);
+            this.getRecordDetail();
+            
+        //     this.getEquipmentAll();
+        //     this.getPartAll();
+        //     this.getRecordDetailAll();
+        // setTimeout(() => {this.loading=false}, 1500);
 
         },
-        // mounted() {
-        //     var myCharts = echarts.init(document.getElementById('main'));
-        //     var option = {
+       
+        
 
-        //         legend: {
-        //             y: 'bottom',
-        //             data: ['计划时间', '实际时间']  //修改的地方1
 
-        //         },
-        //         grid: {
-        //             containLabel: true,
-        //             left: 20
-        //         },
-        //         xAxis: {
-        //             type: 'time'
-        //         },
-
-        //         yAxis: {
-
-        //             data: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7']
-
-        //         },
-        //         tooltip: {
-        //             trigger: 'axis',
-        //             formatter: function (params) {
-        //                 var res = params[0].name + "</br>"
-        //                 var date0 = params[0].data;
-        //                 var date1 = params[1].data;
-        //                 var date2 = params[2].data;
-        //                 var date3 = params[3].data;
-        //                 date0 = date0.getFullYear() + "-" + (date0.getMonth() + 1) + "-" + date0.getDate();
-        //                 date1 = date1.getFullYear() + "-" + (date1.getMonth() + 1) + "-" + date1.getDate();
-        //                 date2 = date2.getFullYear() + "-" + (date2.getMonth() + 1) + "-" + date2.getDate();
-        //                 date3 = date3.getFullYear() + "-" + (date3.getMonth() + 1) + "-" + date3.getDate();
-        //                 res += params[0].seriesName + "~" + params[1].seriesName + ":</br>" + date0 + "~" + date1 + "</br>"
-        //                 res += params[2].seriesName + "~" + params[3].seriesName + ":</br>" + date2 + "~" + date3 + "</br>"
-        //                 console.log(params[0]);
-        //                 return res;
-        //             }
-        //         },
-        //         series: [
-
-        //             {
-        //                 name: '计划开始时间',
-        //                 type: 'bar',
-        //                 stack: 'test1',
-        //                 itemStyle: {
-        //                     normal: {
-        //                         color: 'rgba(0,0,0,0)'
-        //                     }
-        //                 },
-        //                 data: [
-        //                     new Date("2022/09/2"),
-        //                     new Date("2022/09/15"),
-        //                     new Date("2022/09/15"),
-        //                     new Date("2022/10/03"),
-        //                     new Date("2022/10/04"),
-        //                     new Date("2022/10/05"),
-        //                     new Date("2022/10/06")
-        //                 ]
-        //             },
-        //             {
-        //                 name: '计划时间',
-        //                 type: 'bar',
-        //                 stack: 'test1',
-        //                 //修改地方2
-        //                 itemStyle: {
-        //                     normal: {
-        //                         color: '#F98563'
-        //                     }
-        //                 },
-        //                 data: [
-        //                     new Date("2022/09/12"),
-        //                     new Date("2022/09/20"),
-        //                     new Date("2022/09/25"),
-        //                     new Date("2022/10/05"),
-        //                     new Date("2022/10/07"),
-        //                     new Date("2022/10/09"),
-        //                     new Date("2022/10/12")
-        //                 ]
-        //             },
-        //             {
-        //                 name: '实际开始时间',
-        //                 type: 'bar',
-        //                 stack: 'test2',
-        //                 itemStyle: {
-        //                     normal: {
-        //                         color: 'rgba(0,0,0,0)'
-        //                     }
-        //                 },
-        //                 data: [
-        //                     new Date("2022/09/2"),
-        //                     new Date("2022/09/15"),
-        //                     new Date("2022/09/15"),
-        //                     new Date("2022/10/03"),
-        //                     new Date("2022/10/04"),
-        //                     new Date("2022/10/05"),
-        //                     new Date("2022/10/06")
-        //                 ]
-        //             },
-        //             {
-        //                 name: '实际时间',
-        //                 type: 'bar',
-        //                 stack: 'test2',
-        //                 //修改地方3
-        //                 itemStyle: {
-        //                     normal: {
-        //                         color: '#A2E068'
-        //                     }
-        //                 },
-        //                 data: [
-        //                     new Date("2022/09/6"),
-        //                     new Date("2022/09/20"),
-        //                     new Date("2022/09/27"),
-        //                     new Date("2022/10/11"),
-        //                     new Date("2022/10/16"),
-        //                     new Date("2022/10/18"),
-        //                     new Date("2022/10/17")
-        //                 ]
-        //             }
-        //         ]
-        //     };
-        //     myCharts.setOption(option);
-
-        // },
-
+        //所有的函数方法
         methods: { 
 
             //返回功能
@@ -615,7 +572,6 @@
                 let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
                 var createTime = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
                 var today = year + "-" + month + "-" + day
-                this.newScheduleRecord.createTime = createTime;
                 this.newScheduleRecord.date=today;
                 window.today=today;
             },
@@ -659,52 +615,59 @@
                     this.newScheduleRecord.date=this.currentRow.date //为了删除当天所有记录
                 }
             },
-            handleCurrentChangePart(val) {
-                this.currentRow = val;
-            },
+          
 
-            //重置输入框
-            resetInput() {
+             //表格索引连续
+            indexAdd(index) {
+                // console.log(index)
+                const page = this.currentPage // 当前页码
+                const pagesize = 10 // 每页条数
+                return index + 1 + (page - 1) * pagesize
+            },
+            
+            //重置排程单输入框
+            newScheduleRecordResetInput() {
                 this.newScheduleRecord.productionNumber = '';
                 this.newScheduleRecord.orderNumber = '';
                 this.newScheduleRecord.customerName = '';
-                this.newScheduleRecord.partNo = '';
-                this.newScheduleRecord.partName = '';
+                this.newScheduleRecord.model = '';
                 this.newScheduleRecord.number = 100;
                 this.newScheduleRecord.date = today;
+                // this.newScheduleRecord.partName = '';
             },
     
             //打开生产排程记录
-            openRecordList(row) {
+            openRecord() {
+                this.getRecord(),
                 this.dialogRecordVisible = true
-                this.$nextTick(() => {
-                this.$refs.singleTable.setCurrentRow(row);
+            //     this.$nextTick(() => {
+            //     this.$refs.singleTable.setCurrentRow(row);
                 this.newScheduleRecord.productionNumber = ''
-            })
-                
-
+            // })
             },
 
             //  获取生产排程记录
-            getRecordAll() {
+            getRecord() {
+                this.loadingRecord=true;
                 axios({
-                    url: "http://localhost:8080/recordList",
+                    url: "http://localhost:8080/getRecord",
                     method: 'GET'
                 }).then(res => {
                     this.recordDataList = res.data.data;
+                    this.loadingRecord=false;
                 })
 
             },
 
             searchRecord(){
+                this.loadingRecord=true
                 // console.log("productionNumber:",this.inputRecordSearch1,"date",this.inputRecordSearch2)
                 if(this.inputRecordSearch2===null){
                     this.inputRecordSearch2=''
                 }
-                this.loadingRecord=true
-                setTimeout(() => {this.loadingRecord=false}, 800);
+                
                 axios({
-                    url: "http://localhost:8080/recordListSearch",
+                    url: "http://localhost:8080/searchRecord",
                     method: 'GET',
                     params:{
                         productionNumber:this.inputRecordSearch1,
@@ -712,151 +675,38 @@
                     }
                 }).then(res => {
                     this.recordDataList = res.data;
+                    this.loadingRecord=false
                 })
 
             },
 
-            // 获取生产排程详细记录
-            getRecordDetailAll(){
-                this.currentPage=1
-                axios({
-                    url: "http://localhost:8080//recordDetailList",
-                    method: 'GET',
-                    params:{
-                        current:this.currentPage,
-                        productionNumber:''
-                    }
-                }).then(res => {
-                    this.recordDetailDataList = res.data.data;
-                    this.pageTotal=res.data.total
-                })
-                
-
-            },
-            //搜索详细记录
-            getRecordDetailSearch(){
-                // console.log("productionNumber",this.searchRecordDetail.productionNumber)
-                // console.log("mode",this.searchRecordDetail.model)
-                // console.log("number",this.searchRecordDetail.number)
-                // console.log("equipid",this.searchRecordDetail.equipid)
-                // console.log("equipname",this.searchRecordDetail.equipname)
-                // console.log("starttime",this.searchRecordDetail.starttime)
-                // console.log("endtime",this.searchRecordDetail.endtime)
-
-                this.currentPage=1
-                axios({
-                    url: "http://localhost:8080/recordDetailListSearch",
-                    method: 'GET',
-                    params:{
-                        current:this.currentPage,
-                        productionNumber:this.searchRecordDetail.productionNumber,
-                        model: this.searchRecordDetail.model,
-                        number: this.searchRecordDetail.number,
-                        equipid: this.searchRecordDetail.equipid,
-                        equipname: this.searchRecordDetail.equipname,
-                        starttime: this.searchRecordDetail.starttime,
-                        endtime: this.searchRecordDetail.endtime,
-                    }
-                }).then(res => {
-                    
-                    this.recordDetailDataList = res.data.data;
-                    this.pageTotal=res.data.total
-                    this.loading=true
-                    setTimeout(() => {this.loading=false}, 800);
-                })
-                
-                
-                
-
-            },
-
-            //详细记录清空
-            getRecordDetailClear(){
-                
-                this.searchRecordDetail.productionNumber= '',
-                this.searchRecordDetail.equipid='',
-                this.searchRecordDetail.equipname='',
-                this.searchRecordDetail.starttime='',
-                this.searchRecordDetail.endtime='',
-                this.searchRecordDetail.number='',
-                this.searchRecordDetail.model=''
-
-            },
-
-            //分页选择器
-            handleCurrentPageChange(val){
-                this.currentPage=val
-                // console.log("选中了第几页",val)
-                axios({
-                    // url: "http://localhost:8080/recordDetailList",
-                    // method: 'GET',
-                    // params:{
-                    //     current: this.currentPage,
-                    //     productionNumber: this.newScheduleRecord.productionNumber
-                    // }
-                    url: "http://localhost:8080/recordDetailListSearch",
-                    method: 'GET',
-                    params:{
-                        current:this.currentPage,
-                        productionNumber:this.searchRecordDetail.productionNumber,
-                        model: this.searchRecordDetail.model,
-                        number: this.searchRecordDetail.number,
-                        equipid: this.searchRecordDetail.equipid,
-                        equipname: this.searchRecordDetail.equipname,
-                        starttime: this.searchRecordDetail.starttime,
-                        endtime: this.searchRecordDetail.endtime,
-                    }
-                }).then(res => {
-                    this.recordDetailDataList = res.data.data;
-                    this.pageTotal=res.data.total
-                })
-            },
-
-            //表格索引连续
-            indexAdd(index) {
-                // console.log(index)
-                const page = this.currentPage // 当前页码
-                const pagesize = 10 // 每页条数
-                return index + 1 + (page - 1) * pagesize
-            },
-    
-            //  生产排程记录弹窗查询与取消
-            openPartList(row){
-                this.dialogPartVisible = true;
-                this.$nextTick(() => {
-                this.$refs.singleTable2.setCurrentRow(row)
-            })
-            },
-            recordConfirm() {
+            //排程记录弹窗确认
+            confirmRecord() {
                 if(this.newScheduleRecord.productionNumber===''){
                     // ||this.newScheduleRecord.productionNumber===null
                     // this.recordCancel();
                 this.dialogRecordVisible = false;
-                this.resetInput();
-                this.loading=true
-                setTimeout(() => {this.loading=false}, 800);
+                this.newScheduleRecordResetInput();
                 this.newScheduleRecord.productionNumber =''
-                this.getRecordDetailAll();//如果为空默认查找所有数据
-            
-
-
-
+                this.getRecordDetail();//如果为空默认查找所有数据
                 }
                 else{
+                this.loadingRecordDetail=false
+
                 this.dialogRecordVisible = false;
                 this.newScheduleRecord.productionNumber=this.currentRow.productionNumber
                 this.newScheduleRecord.orderNumber=this.currentRow.orderNumber
                 this.newScheduleRecord.customerName=this.currentRow.customerName
-                this.newScheduleRecord.partNo=this.currentRow.partNo
-                this.newScheduleRecord.partName=this.currentRow.partName
+                this.newScheduleRecord.model=this.currentRow.model
+                // this.newScheduleRecord.partName=this.currentRow.partName
                 this.newScheduleRecord.number=this.currentRow.number
                 this.newScheduleRecord.date=this.currentRow.date
                 this.currentPage=1
 
-                this.searchRecordDetail.productionNumber=this.currentRow.productionNumber
+                this.searchRecordDetailList.productionNumber=this.currentRow.productionNumber
 
                 axios({
-                    url: "http://localhost:8080/recordDetailList",
+                    url: "http://localhost:8080/getRecordDetail",
                     method: 'GET',
                     params:{
                         current:this.currentPage,
@@ -866,19 +716,19 @@
                 }).then(res => {
                     this.recordDetailDataList = res.data.data;
                     this.pageTotal=res.data.total
-                    this.loading=true
-                    setTimeout(() => {this.loading=false}, 800);
+                    this.loadingRecordDetail=false
+                    
                 })
                
             }
             },
-            recordCancel() {
+            
+            //  关闭生产排程记录弹窗
+            closeRecord() {
                 this.dialogRecordVisible = false;
                 this.newScheduleRecord.date=today;
-
             },
-            //  生产排程记录弹窗查询与取消--------------------------------------------------END
-
+            
             //删除生产排程记录
             deleteRecord() {
 
@@ -897,34 +747,36 @@
             },
             //删除生产排程记录-------------------------------------------------------------END
             recordDeleteConfirm() {
+                this.loadingRecord = true
+                this.loadingRecordDetail = true
                 axios({
                     url: 'http://localhost:8080/deleteRecord',
                     method: 'POST',
                     data: this.newScheduleRecord,
                 }).then(res => {
-                    this.loading = true
-                    this.loadingRecord = true
-                    setTimeout(() => { this.loading = false }, 800)
-                    setTimeout(() => { this.loadingRecord = false }, 800)
-                    setTimeout(() => {
+                    this.loading = false
+                    this.loadingRecord = false
+                    
+                    
                         this.$message({
                             message: '删除成功',
                             type: 'success'
                         })
-                    }, 1200)
+                    
                     //删除成功标语
                     this.newScheduleRecord.productionNumber=''
 
                 }).finally(() => {
-                    this.getRecordAll();
+                    this.getRecord();
                 })
                 axios({
                     url: 'http://localhost:8080/deleteRecordDetail',
                     method: 'POST',
                     data: this.newScheduleRecord,
                 }).then(res => {
+                    this.loadingRecord = false
                 }).finally(() => {
-                    this.getRecordDetailAll();
+                    this.getRecordDetail();
                 })
                 this.dialogRecordDeleteVisible = false
             },
@@ -939,84 +791,458 @@
 
 
 
+            // 获取生产排程详细记录
+            getRecordDetail(){
+                this.currentPage=1
+                this.loadingRecordDetail=true
+                axios({
+                    url: "http://localhost:8080/getRecordDetail",
+                    method: 'GET',
+                    params:{
+                        current:this.currentPage,
+                        productionNumber:''
+                    }
+                }).then(res => {
+                    this.recordDetailDataList = res.data.data;
+                    this.pageTotal=res.data.total
+                    this.loadingRecordDetail=false
+                })
+                
+
+            },
+            //搜索详细记录
+            searchRecordDetail(){
+                // console.log("productionNumber",this.searchRecordDetailList.productionNumber)
+                // console.log("mode",this.searchRecordDetailList.model)
+                // console.log("number",this.searchRecordDetailList.number)
+                // console.log("equipid",this.searchRecordDetailList.equipid)
+                // console.log("equipname",this.searchRecordDetailList.equipname)
+                // console.log("starttime",this.searchRecordDetailList.starttime)
+                // console.log("endtime",this.searchRecordDetailList.endtime)
+                this.loadingRecordDetail=true
+                this.currentPage=1
+                axios({
+                    url: "http://localhost:8080/searchRecordDetail",
+                    method: 'GET',
+                    params:{
+                        current:this.currentPage,
+                        productionNumber:this.searchRecordDetailList.productionNumber,
+                        model: this.searchRecordDetailList.model,
+                        number: this.searchRecordDetailList.number,
+                        equipid: this.searchRecordDetailList.equipid,
+                        equipname: this.searchRecordDetailList.equipname,
+                        starttime: this.searchRecordDetailList.starttime,
+                        endtime: this.searchRecordDetailList.endtime,
+                    }
+                }).then(res => {
+                    
+                    this.recordDetailDataList = res.data.data;
+                    this.pageTotal=res.data.total
+                    this.loadingRecordDetail=false
+                })
+                
+                
+                
+
+            },
+
+            //详细记录清空
+            clearRecordDetail(){
+                
+                this.searchRecordDetailList.productionNumber= '',
+                this.searchRecordDetailList.equipid='',
+                this.searchRecordDetailList.equipname='',
+                this.searchRecordDetailList.starttime='',
+                this.searchRecordDetailList.endtime='',
+                this.searchRecordDetailList.number='',
+                this.searchRecordDetailList.model=''
+
+            },
+
+            //分页选择器
+            handleCurrentPageChange(val){
+                this.currentPage=val
+                // console.log("选中了第几页",val)
+                axios({
+                    // url: "http://localhost:8080/recordDetailList",
+                    // method: 'GET',
+                    // params:{
+                    //     current: this.currentPage,
+                    //     productionNumber: this.newScheduleRecord.productionNumber
+                    // }
+                    url: "http://localhost:8080/recordDetailListSearch",
+                    method: 'GET',
+                    params:{
+                        current:this.currentPage,
+                        productionNumber:this.searchRecordDetailList.productionNumber,
+                        model: this.searchRecordDetailList.model,
+                        number: this.searchRecordDetailList.number,
+                        equipid: this.searchRecordDetailList.equipid,
+                        equipname: this.searchRecordDetailList.equipname,
+                        starttime: this.searchRecordDetailList.starttime,
+                        endtime: this.searchRecordDetailList.endtime,
+                    }
+                }).then(res => {
+                    this.recordDetailDataList = res.data.data;
+                    this.pageTotal=res.data.total
+                })
+            },
+
+            //  打开选择型号
+            openModel(){
+                this.dialogModelVisible = true;
+                this.newScheduleRecord.model = '';
+                this.getModel();
+            //     this.$nextTick(() => {
+            //     this.$refs.singleTable2.setCurrentRow(row)
+            // })
+            },
+            
             //生产物料选择查询------------------------
-            getPartAll() {
+            getModel() {
                 //发送ajax请求
                 axios({
-                    url: "http://localhost:8080/partList",
+                    url: "http://localhost:8080/getModel",
                     method: 'GET'
                 }).then(res => {
-                    this.partDataList = res.data.data;
-                }),
-                    axios({
-                        url: "http://localhost:8080/modelNameList",
-                        method: 'GET'
-                    }).then(res => {
-                        this.modelNameList = res.data.data;
-                    })
+                    this.modelDataList = res.data.data;
+                })
+                   
             },
-            //搜索物料功能---------------------------
-            searchModelName()
-             {
-                param = "?modelname=" + this.modelname;
-                if (this.modelname != '') {   
-                    axios.get('http://localhost:8080/searchModelNameList/' + param).then(res => {
-                        this.partDataList = res.data
-                    })
-                }
-                else { this.getPartAll() }
+           // 型号选择弹框确认与关闭
+            closeModel() {
+                this.dialogModelVisible = false;
+               
             },
-           // 物料选择弹框确认与关闭
-            partCancel() {
-                this.dialogPartVisible = false;
-                this.newScheduleRecord.partNo = '';
-                this.newScheduleRecord.partName = '';
-            },
-            partConfirm() {
-                this.dialogPartVisible = false;
-                this.newScheduleRecord.partNo = this.currentRow.partS;
-                this.newScheduleRecord.partName = this.currentRow.partSName;
+            confirmModel() {
+                this.dialogModelVisible = false;
+                this.newScheduleRecord.model = this.currentRow.model;
 
             },
 
+            handleCurrentChangeModel(val) {
+                this.currentRow = val;
+            },
 
-            //设备信息查询----------------------------------------------------------------
-            getEquipmentAll() {
+            //打开设备Bom表
+            openEquipmentBom() { 
+            this.dialogEquipmentVisible = true
+            //清空input
+                this.resetEquipmentBom()
+            this.getEquipmentBom()
+            // this.$nextTick(() => {
+            //     this.$refs.singleTableEquipmentBom.setCurrentRow(row);
+            
+            // })
+            },
+
+            getEquipmentBom(){
                 axios({
-                    url: "http://localhost:8080/equipmentList",
+                    url: "http://localhost:8080/getEquipmentBom",
+                    method: 'GET'
+                }).then(res => {
+                    this.equipmentBomDataList = res.data.data;
+                })
+            },           
+
+            chooseEquipment(){
+                this.dialogEquipmentChooseVisible = true
+                axios({
+                    url: "http://localhost:8080/getEquipment",
                     method: 'GET'
                 }).then(res => {
                     this.equipmentDataList = res.data.data;
-                    // var Equip = res.data.data;
-                    //     window.Equip = Equip;
-                }),
-                    axios({
-                        url: "http://localhost:8080/partNameList",
-                        method: 'GET'
-                    }).then(res => {
-                        this.partNameList = res.data.data;
-                    })
+                })
+            },
+            handleCurrentEquipmentChooseChange(val){
+                this.currentRow = val;
+            },
 
-                    //计算排程用
-                    //生产排程计算
-                    //A：转子轴+转子+转子轴承组件 、B：前端盖、C：后端盖、 D：机座、E：定子、F：机座定子、G：三相异步电机
+            // 设备选择确认
+            EquipmentChooseConfirm(){
+                if(this.currentRow===null||typeof(this.currentRow)=='undefined'){
+                this.newEquipmentBom.equipid=''
+                this.newEquipmentBom.equipname=''
+                this.dialogEquipmentChooseVisible = false
+                }
+                else{
+                this.newEquipmentBom.equipid=this.currentRow.equipid
+                this.newEquipmentBom.equipname=this.currentRow.equipname
+                this.dialogEquipmentChooseVisible = false
+                }
                 
             },
-            //设备信息根据物料搜索功能
-            searchPartName() {
-                param = "?partname=" + this.partname;
-                if (this.partname != '') {
-                    axios.get('http://localhost:8080/searchPartNameList/' + param).then(res => {
-                        this.equipmentDataList = res.data
-                    })
-                }
-                else { this.getEquipmentAll() }
-            },
-
-            //设备信息隐藏
-            eHide() {
+            //设备信息表关闭
+            closeDialogEquipmentVisible() {
                 this.dialogEquipmentVisible = false;
             },
+            //重置设备信息
+            resetEquipmentBom(){
+                this.newEquipmentBom.model=''
+                this.newEquipmentBom.equipid=''
+                this.newEquipmentBom.equipname=''
+                this.newEquipmentBom.processname=''
+                this.newEquipmentBom.ct=''
+                this.newEquipmentBom.level=''
+                this.newEquipmentBom.levelnumber=''
+                this.newEquipmentBom.processorder=''
+                this.newEquipmentBom.part=''
+            },
+
+            //添加设备信息Bom表
+            addEquipmentBom(){
+                if (this.newEquipmentBom.model == '') {
+                    this.$message.error('请输入产品型号'); 
+                }
+                else if (this.newEquipmentBom.equipname == '') {
+                    this.$message.error('请选择设备');   
+                }
+                else if (this.newEquipmentBom.processname == '') {
+                    this.$message.error('请输入工序名称');
+                    
+                }
+                else if (this.newEquipmentBom.ct == '') {
+                    this.$message.error('请输入节拍时间');
+                }
+                else if (this.newEquipmentBom.part == '') {
+                    this.$message.error('请输入零件名称');
+                }
+                else if (this.newEquipmentBom.level == '') {
+                    this.$message.error('请输入加工等级');
+                }
+                else if (this.newEquipmentBom.levelnumber == '') {
+                    this.$message.error('请输入该等级的零件序号');
+                }
+                else if (this.newEquipmentBom.processorder == '') {
+                    this.$message.error('请输入该等级该零件序号的加工次序');
+                }
+                else{
+                    var obj ={}
+                    obj.model=this.newEquipmentBom.model
+                    axios({
+                        url: 'http://localhost:8080/searchEquipmentBom2',
+                        method: 'GET',
+                        params:{
+                            model:this.newEquipmentBom.model,
+                            equipid:this.newEquipmentBom.equipid,
+                            equipname:this.newEquipmentBom.equipname,
+                            processname:this.newEquipmentBom.processname,
+                            ct:this.newEquipmentBom.ct,
+                            level:this.newEquipmentBom.level,
+                            levelnumber:this.newEquipmentBom.levelnumber,
+                            processorder:this.newEquipmentBom.processorder,
+                            part:this.newEquipmentBom.part
+                        },
+                        
+                    }).then(res => {
+                        if(res.data.length==0)
+                        {
+                            axios({
+                        url: 'http://localhost:8080/addEquipmentBom',
+                        method: 'POST',
+                        data: this.newEquipmentBom,
+                    }).then(res => {
+                        this.$message.success('该设备信息Bom数据添加成功！');
+                        this.searchEquipmentBom2()
+                    })
+
+                    //添加model
+                    axios({
+                        url: 'http://localhost:8080/addModel',
+                        method: 'POST',
+                        data: obj,
+                    }).then(res => {
+                        
+                    })
+
+                        }
+                        else{
+                            this.$message.error('当前设备信息Bom数据已存在请重新输入')
+                            return
+                        }
+                    })
+                }
+            },
+
+            //搜索设备Bom
+            searchEquipmentBom(){
+                
+                axios({
+                        url: 'http://localhost:8080/searchEquipmentBom',
+                        method: 'GET',
+                        params:{
+                            model:this.newEquipmentBom.model,
+                            equipid:this.newEquipmentBom.equipid,
+                            equipname:this.newEquipmentBom.equipname,
+                            processname:this.newEquipmentBom.processname,
+                            ct:this.newEquipmentBom.ct,
+                            level:this.newEquipmentBom.level,
+                            levelnumber:this.newEquipmentBom.levelnumber,
+                            processorder:this.newEquipmentBom.processorder,
+                            part:this.newEquipmentBom.part
+                        },
+                        
+                    }).then(res => {
+                        // console.log(res.data)
+                        // console.log(this.newEquipmentBom.model)
+                        // console.log(this.newEquipmentBom.equipid)
+                        // console.log(this.newEquipmentBom.equipname)
+                        // console.log(this.newEquipmentBom.processname)
+                        // console.log(this.newEquipmentBom.ct)
+                        // console.log(this.newEquipmentBom.level)
+                        // console.log(this.newEquipmentBom.levelnumber)
+                        // console.log(this.newEquipmentBom.processorder)
+                        // console.log(this.newEquipmentBom.part)
+                        this.equipmentBomDataList = res.data
+                    })
+
+            },
+
+             //搜索设备Bom
+             searchEquipmentBom2(){
+                
+                axios({
+                        url: 'http://localhost:8080/searchEquipmentBom2',
+                        method: 'GET',
+                        params:{
+                            model:this.newEquipmentBom.model,
+                            equipid:this.newEquipmentBom.equipid,
+                            equipname:this.newEquipmentBom.equipname,
+                            processname:this.newEquipmentBom.processname,
+                            ct:this.newEquipmentBom.ct,
+                            level:this.newEquipmentBom.level,
+                            levelnumber:this.newEquipmentBom.levelnumber,
+                            processorder:this.newEquipmentBom.processorder,
+                            part:this.newEquipmentBom.part
+                        },
+                        
+                    }).then(res => {
+                        this.equipmentBomDataList = res.data
+                    })
+
+            },
+
+            handleCurrentEquipmentBomChange(val){
+                this.currentRow = val;
+                if(this.currentRow===null){
+                    return
+                }
+                else{
+                this.newEquipmentBom.model=this.currentRow.model
+                this.newEquipmentBom.equipid=this.currentRow.equipid
+                this.newEquipmentBom.equipname=this.currentRow.equipname
+                this.newEquipmentBom.processname=this.currentRow.processname
+                this.newEquipmentBom.ct=this.currentRow.ct
+                this.newEquipmentBom.level=this.currentRow.level
+                this.newEquipmentBom.levelnumber=this.currentRow.levelnumber
+                this.newEquipmentBom.processorder=this.currentRow.processorder
+                this.newEquipmentBom.part=this.currentRow.part
+            }
+            },
+            deleteEquipmentBom(){
+                this.visible = false
+                if(this.newEquipmentBom.model == ''||this.newEquipmentBom.equipid==''||this.newEquipmentBom.equipname==''||this.newEquipmentBom.processname==''||this.newEquipmentBom.ct==''||this.newEquipmentBom.level==''||this.newEquipmentBom.levelnumber==''||this.newEquipmentBom.processorder==''||this.newEquipmentBom.part=='')
+                {
+                    this.$message.warning('请选择要删除的设备！'); 
+                }
+                else{
+
+
+                axios({
+                        url: 'http://localhost:8080/deleteEquipmentBom',
+                        method: 'GET',
+                        params:{
+                            model:this.newEquipmentBom.model,
+                            equipid:this.newEquipmentBom.equipid,
+                            equipname:this.newEquipmentBom.equipname,
+                            processname:this.newEquipmentBom.processname,
+                            ct:this.newEquipmentBom.ct,
+                            level:this.newEquipmentBom.level,
+                            levelnumber:this.newEquipmentBom.levelnumber,
+                            processorder:this.newEquipmentBom.processorder,
+                            part:this.newEquipmentBom.part
+                        },
+                        
+                    }).then(res => {
+                        this.$message.success('该设备信息Bom数据删除成功！');
+                        this.getEquipmentBom();
+                        
+                        //搜索model是否存在
+                        axios({
+                        url: 'http://localhost:8080/searchEquipmentBom2',
+                        method: 'GET',
+                        params:{
+                            model:this.newEquipmentBom.model,
+                            equipid:'',
+                            equipname:'',
+                            processname:'',
+                            ct:'',
+                            level:'',
+                            levelnumber:'',
+                            processorder:'',
+                            part:'',
+                        },
+                    }).then(res => {
+                        if(res.data.length==0){
+                        axios({
+                        url: 'http://localhost:8080/deleteModel',
+                        method: 'GET',
+                        params:{
+                            model:this.newEquipmentBom.model,
+                        }
+                        }) 
+                        this.resetEquipmentBom(); 
+                        }
+                        else{
+                            return
+                            this.resetEquipmentBom();
+                        }
+                         
+                    })
+
+
+
+
+
+
+
+                    })
+                }
+
+            },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //-------------------------------------------------------------------------------------
             //排程计算
@@ -2041,7 +2267,7 @@
                             this.$message.error('该生产任务单号已经存在！请重新输入！');
                         }
                     }).finally(() => {
-                            this.getRecordAll();
+                            this.getRecord();
                             
                         });//finally
 

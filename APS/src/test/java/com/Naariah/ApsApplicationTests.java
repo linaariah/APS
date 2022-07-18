@@ -1,9 +1,9 @@
 package com.Naariah;
 
-import com.Naariah.dao.EquipmentDao;
+import com.Naariah.dao.EquipmentBomDao;
 import com.Naariah.dao.RecordDao;
 import com.Naariah.dao.RecordDetailDao;
-import com.Naariah.domain.Equipment;
+import com.Naariah.domain.EquipmentBom;
 import com.Naariah.domain.Record;
 import com.Naariah.domain.RecordDetail;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -19,25 +19,18 @@ import java.util.List;
 class ApsApplicationTests {
 
     @Autowired
-    private EquipmentDao equipmentDao;
+    private EquipmentBomDao equipmentBomDao;
 
 //    private PartDao partDao;
 
     @Test
     void testGetAll() {
-        QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("equipmentno","equipmentname","processname","ct","processorder","partname");
-        List<Equipment> equipmentList = equipmentDao.selectList(queryWrapper);
-        System.out.println(equipmentList);
+        List<EquipmentBom> equipmentBomList = equipmentBomDao.selectList(queryWrapper);
+        System.out.println(equipmentBomList);
 //        List<Part> partList = partDao.selectList(null);
 //        System.out.println(partList);
-    }
-    @Test
-    void testSearchAll(){
-        LambdaQueryWrapper<Equipment> lqw = new LambdaQueryWrapper<Equipment>();
-        lqw.eq(Equipment::getPartname, "转子");
-        List<Equipment> equipmentList = equipmentDao.selectList(lqw);
-        System.out.println(equipmentList);
     }
 
 
@@ -52,8 +45,8 @@ class ApsApplicationTests {
       record.setOrderNumber("002");
       record.setCustomerName("aaa");
       record.setNumber(100);
-      record.setPartNo("000001");
-      record.setPartName("qqqq");
+//      record.setPartNo("000001");
+//      record.setPartName("qqqq");
       record.setCreateTime("2022-06-21 20:09:01");
       recordDao.insert(record);
 
