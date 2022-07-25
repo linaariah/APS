@@ -181,7 +181,7 @@
                                     
                                         <el-button type="success" @click="newScheduleRecordResetInput" style="margin-left: 57px">重置输入框</el-button>
         
-                                    <el-button type="primary" :loading="scheduleButton">生产排程计算</el-button>
+                                    <el-button type="primary" :loading="scheduleButton" @click="calculate">生产排程计算</el-button>
                                     
                                     </div>
                                 </div>
@@ -532,6 +532,13 @@
 
             firstSchedule:1,
             
+            EquipData:{
+                EquipLevel:[],
+                EquipLevelnumber:[],
+                EquipProcessorder:[]
+            }
+            // EquipLevel:[],
+            // EquipLevelnumber:[]
             
 
         },
@@ -789,8 +796,6 @@
 
             },
 
-
-
             // 获取生产排程详细记录
             getRecordDetail(){
                 this.currentPage=1
@@ -936,6 +941,7 @@
             // })
             },
 
+            //获取设备Bom
             getEquipmentBom(){
                 axios({
                     url: "http://localhost:8080/getEquipmentBom",
@@ -945,6 +951,7 @@
                 })
             },           
 
+            //选择设备
             chooseEquipment(){
                 this.dialogEquipmentChooseVisible = true
                 axios({
@@ -1097,9 +1104,7 @@
                     })
 
             },
-
-             //搜索设备Bom
-             searchEquipmentBom2(){
+            searchEquipmentBom2(){
                 
                 axios({
                         url: 'http://localhost:8080/searchEquipmentBom2',
@@ -1122,6 +1127,8 @@
 
             },
 
+             
+            //选择设备Bom
             handleCurrentEquipmentBomChange(val){
                 this.currentRow = val;
                 if(this.currentRow===null){
@@ -1139,11 +1146,12 @@
                 this.newEquipmentBom.part=this.currentRow.part
             }
             },
+            //删除设备Bom
             deleteEquipmentBom(){
                 this.visible = false
                 if(this.newEquipmentBom.model == ''||this.newEquipmentBom.equipid==''||this.newEquipmentBom.equipname==''||this.newEquipmentBom.processname==''||this.newEquipmentBom.ct==''||this.newEquipmentBom.level==''||this.newEquipmentBom.levelnumber==''||this.newEquipmentBom.processorder==''||this.newEquipmentBom.part=='')
                 {
-                    this.$message.warning('请选择要删除的设备！'); 
+                    this.$message.warning('请选择要删除的设备信息Bom数据！'); 
                 }
                 else{
 
@@ -1169,7 +1177,7 @@
                         
                         //搜索model是否存在
                         axios({
-                        url: 'http://localhost:8080/searchEquipmentBom2',
+                        url: 'http://localhost:8080/searchEquipmentBom3',
                         method: 'GET',
                         params:{
                             model:this.newEquipmentBom.model,
@@ -1210,6 +1218,291 @@
                 }
 
             },
+
+
+
+
+            //-----------------------calculate
+            calculate(){
+    
+        this.scheduleButton = true
+        //创建时间获取
+        let date = new Date();
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+                let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+                let hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+                let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+                let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+                var createTime = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+                this.newScheduleRecord.createTime = createTime;
+                
+                //判断是否是当日首场排程
+                axios({
+                        url: "http://localhost:8080/recordDetailListForSchedule",
+                        method: 'GET',
+                        params: {
+                            date: this.newScheduleRecord.date,
+                        }
+                    }).then(res => {
+                        if (res.data.data.length == 0) {
+                            this.firstSchedule = 1
+                            // console.log("进行当日首场生产排程计算", this.firstSchedule)
+                        }//当日首场排程逻辑结束
+                        else {
+                            this.firstSchedule = 0
+                            // console.log("第二场及以后排程计算", this.firstSchedule)
+                        }
+
+                    })
+
+
+                if (this.newScheduleRecord.productionNumber == '') {
+                    this.$message.error('请输入生产任务单号');
+                    this.scheduleButton = false
+                    return
+                }
+                else if (this.newScheduleRecord.model == '') {
+                    this.$message.error('请选择产品型号');
+                    this.scheduleButton = false
+                    return
+                }
+                else if (this.newScheduleRecord.date == ''||this.newScheduleRecord.date===null) {
+                    this.$message.error('请选择排产日期');
+                    this.scheduleButton = false
+                    return
+                    
+                }
+                else {
+                    axios({
+                        url: 'http://localhost:8080/addRecord',
+                        method: 'POST',
+                        data: this.newScheduleRecord,
+                    }).then(res => {
+                            if(res.data.code == 20011){
+                                this.getEquipLevel()
+
+                                // this.timeCalculate()
+                                //-----------
+                                setTimeout(() => {
+                                    this.timeCalculate()
+                    }, 500);
+
+
+                            }
+                             else {
+                            this.$message.error('该生产任务单号已经存在！请重新输入！');
+                            }
+                    }).finally(() => {
+                            this.getRecord();
+                            this.getRecordDetail();
+                            this.scheduleButton = false
+                            
+                        });//finally
+                }
+                    // -----------------------------------------
+        },
+
+            
+
+        getEquipLevel(){
+            
+            axios({
+                url: 'http://localhost:8080/searchEquipmentBomForModel',
+                method: 'GET',
+                params:{
+                        model:this.newScheduleRecord.model,
+                        level:'',
+                        levelnumber:'',
+                        },            
+                        
+                    }).then(res => {
+                        var EquipLevel =[]
+                        var Equip=res.data
+                        for (var i= 0 ;i < Equip.length ; i++)
+                        {
+                            EquipLevel.push(Equip[i].level)
+                            this.repeat(EquipLevel) 
+                        }
+                        // console.log('EquipLevel:',EquipLevel)
+                        window.EquipLevel=EquipLevel
+                        //Data 赋值
+                        this.EquipData.EquipLevel=EquipLevel
+
+                       
+                    }).then(res => { this.getEquipLevelnumber()})
+        },
+        
+       async getEquipLevelnumber(){
+        
+            for(var i=0;i<EquipLevel.length;i++){
+                var EquipLevelnumber=[]
+                await axios({
+                url: 'http://localhost:8080/searchEquipmentBomForLevelnumber',
+                method: 'GET',
+                params:{
+                        model:this.newScheduleRecord.model,
+                        level:EquipLevel[i],
+                        levelnumber:'',
+                        },            
+                        
+                    }).then(res => {
+                        var Equip = res.data
+                        // console.log(Equip)
+                        
+                        for (var i= 0 ;i < Equip.length ; i++)
+                        {
+                            EquipLevelnumber.push(Equip[i].levelnumber)
+                            this.repeat(EquipLevelnumber)
+                            
+                            
+                        }
+                    }).then(res => {  
+                        window.EquipLevelnumber=EquipLevelnumber
+                        window.EquipLeveli=EquipLevel[i]
+                        // console.log("EquipLevelnumber：EquipLevel",EquipLevel[i],EquipLevelnumber)
+                        this.EquipData.EquipLevelnumber.push(EquipLevelnumber)
+                        
+                    })
+                   
+                    await this.getEquipProcessorder()
+            }
+            
+
+        },
+
+        async getEquipProcessorder(){
+        
+        for(var i=0;i<EquipLevelnumber.length;i++){
+            var EquipProcessorder=[]
+            await axios({
+            url: 'http://localhost:8080/searchEquipmentBomForProcessorder',
+            method: 'GET',
+            params:{
+                    model:this.newScheduleRecord.model,
+                    level:EquipLeveli,
+                    levelnumber:EquipLevelnumber[i],
+                    },            
+                    
+                }).then(res => {
+                    var Equip = res.data
+                    // console.log(Equip)
+                    window.Equip=Equip
+                    
+                    for (var i= 0 ;i < Equip.length ; i++)
+                    {
+                        EquipProcessorder.push(Equip[i].processorder)
+                        this.repeat(EquipProcessorder)
+                        
+                        
+                    }
+                }).then(res => {  
+                    
+                    // console.log('EquipProcessorder：EquipLevelnumber',EquipLevelnumber[i],EquipProcessorder)
+                    this.EquipData.EquipProcessorder.push(EquipProcessorder)
+                    // this.timeCalculate()
+                    
+                })
+
+                
+               
+                
+        }
+        
+
+    },
+
+        timeCalculate(){
+
+            // this.EquipData=JSON.parse(JSON.stringify(this.EquipData))
+                var EquipLevel=JSON.parse(JSON.stringify(this.EquipData.EquipLevel))
+                var TempEquipLevelnumber=JSON.parse(JSON.stringify(this.EquipData.EquipLevelnumber))
+                var TempEquipProcessorder=JSON.parse(JSON.stringify(this.EquipData.EquipProcessorder))
+
+                var EquipLevelnumber=[]
+                var EquipProcessorder=[]
+                                
+                for(var i=0;i<TempEquipLevelnumber.length;i++){
+                    let x = TempEquipLevelnumber[i].length
+                    EquipLevelnumber.push(x)
+                }
+                for(var j=0;j<TempEquipProcessorder.length;j++){
+                    let y = TempEquipProcessorder[j].length
+                    EquipProcessorder.push(y)
+                }
+
+
+                                // console.log('Equip数据：',this.EquipData)
+                                console.log('Equip数据EquipLevel：',EquipLevel)
+                                console.log('Equip数据EquipLevelnumber：',EquipLevelnumber)
+                                console.log('Equip数据EquipProcessorder：', EquipProcessorder)
+
+    },  
+        // console.log(Equip)
+        // if (EquipLeveli ==='1'){
+            
+            // for (var i=0;i<EquipProcessorder.length;i++){
+               
+                    // for(var j=0;j<Equip.length;j++){
+                        
+                    //     let timeDate = this.newScheduleRecord.date //获取排程日期
+                    //     let timeStart = timeDate + ' ' + '08:30:00'
+                    //     let timeStampStart = Date.parse(new Date(timeStart))//设备加工时间字符串更改为时间戳
+                    //     let timeProcess = 1000 * Equip[j].ct * this.newScheduleRecord.number
+                    //     let timeStampEnd = timeStampStart + timeProcess       //3级设备加工结束时间时间戳
+                    //     let timeEnd = this.timeCalculate(timeStampEnd) //调用函数时间戳转化为字符串
+                    //     let equipmentUpadateList={}
+                    //     equipmentUpadateList.equipid = Equip[j].equipid
+                    //     equipmentUpadateList.starttime = timeStart
+                    //     equipmentUpadateList.endtime = timeEnd
+                    //      await axios({
+                    //          url: 'http://localhost:8080/updateEquipment',
+                    //          method: 'POST',
+                    //          data: equipmentUpadateList,
+                    //      }).then(res => {console.log(Equip[j])})
+                    // }
+                    //     let timeDate = this.newScheduleRecord.date //获取排程日期
+                    //     let timeStart = timeDate + ' ' + '08:30:00'
+                    //     let timeStampStart = Date.parse(new Date(timeStart))//设备加工时间字符串更改为时间戳
+                    //     let timeProcess = 1000 * Equip[j].ct * this.newScheduleRecord.number
+                    //     let timeStampEnd = timeStampStart + timeProcess       //3级设备加工结束时间时间戳
+                    //     let timeEnd = this.timeCalculate(timeStampEnd) //调用函数时间戳转化为字符串
+                    //     let equipmentUpadateList={}
+                    //     equipmentUpadateList.equipid = Equip[j].equipid
+                    //     equipmentUpadateList.starttime = timeStart
+                    //     equipmentUpadateList.endtime = timeEnd
+                    //      axios({
+                    //          url: 'http://localhost:8080/updateEquipment',
+                    //          method: 'POST',
+                    //          data: equipmentUpadateList,
+                    //      }).then(res => {
+                             
+                    //      })
+                    //                                 }
+                
+
+            // }
+        // }
+        // else{
+        //     console.log("2222222")
+        // }
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1328,7 +1621,7 @@
                     // console.log('排产日期:', this.newScheduleRecord.date);
                     // console.log('创建时间:', this.newScheduleRecord.createTime);
                     // this.getEquipmentAll();
-                    // console.log("计算前设备数据",Equip)
+                    // console.log("计算前设备数据",Equip) 
                     //提交表单
                     axios({
                         url: 'http://localhost:8080/addRecord',
@@ -2334,9 +2627,9 @@
 
 
 
-
-
-        }
+    
+    },
+        
     })
 </script>
 

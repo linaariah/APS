@@ -12,5 +12,7 @@ public class Equipment {
     private String workshopid;
     private String lineid;
     private String stationid;
+    private String starttime;
+    private String endtime;
 
 }
