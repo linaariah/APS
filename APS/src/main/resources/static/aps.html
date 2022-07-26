@@ -584,7 +584,7 @@
             },
 
             //时间戳改字符串函数
-            timeCalculate(time){
+            timeTransform(time){
                 let timeTemp = new Date(time)             
                             let year = timeTemp.getFullYear();
                             let month = timeTemp.getMonth() + 1 < 10 ? "0" + (timeTemp.getMonth() + 1) : timeTemp.getMonth() + 1;
@@ -1282,11 +1282,14 @@
                             if(res.data.code == 20011){
                                 this.getEquipLevel()
 
-                                // this.timeCalculate()
-                                //-----------
+                               
                                 setTimeout(() => {
                                     this.timeCalculate()
-                    }, 500);
+                    }, 300);
+                   
+
+                  
+
 
 
                             }
@@ -1303,8 +1306,6 @@
                     // -----------------------------------------
         },
 
-            
-
         getEquipLevel(){
             
             axios({
@@ -1317,6 +1318,7 @@
                         },            
                         
                     }).then(res => {
+                        window.EquipmentBomData=res.data //排程时间计算用
                         var EquipLevel =[]
                         var Equip=res.data
                         for (var i= 0 ;i < Equip.length ; i++)
@@ -1400,7 +1402,7 @@
                     
                     // console.log('EquipProcessorder：EquipLevelnumber',EquipLevelnumber[i],EquipProcessorder)
                     this.EquipData.EquipProcessorder.push(EquipProcessorder)
-                    // this.timeCalculate()
+            
                     
                 })
 
@@ -1413,19 +1415,23 @@
     },
 
         timeCalculate(){
+            
 
             // this.EquipData=JSON.parse(JSON.stringify(this.EquipData))
                 var EquipLevel=JSON.parse(JSON.stringify(this.EquipData.EquipLevel))
-                var TempEquipLevelnumber=JSON.parse(JSON.stringify(this.EquipData.EquipLevelnumber))
-                var TempEquipProcessorder=JSON.parse(JSON.stringify(this.EquipData.EquipProcessorder))
+                console.log('Equip数据EquipLevel：',EquipLevel)
 
+                var TempEquipLevelnumber=JSON.parse(JSON.stringify(this.EquipData.EquipLevelnumber))
                 var EquipLevelnumber=[]
-                var EquipProcessorder=[]
-                                
                 for(var i=0;i<TempEquipLevelnumber.length;i++){
                     let x = TempEquipLevelnumber[i].length
                     EquipLevelnumber.push(x)
                 }
+                console.log('Equip数据EquipLevelnumber：',EquipLevelnumber)
+                
+
+                var TempEquipProcessorder=JSON.parse(JSON.stringify(this.EquipData.EquipProcessorder))
+                var EquipProcessorder=[]           
                 for(var j=0;j<TempEquipProcessorder.length;j++){
                     let y = TempEquipProcessorder[j].length
                     EquipProcessorder.push(y)
@@ -1433,59 +1439,59 @@
 
 
                                 // console.log('Equip数据：',this.EquipData)
-                                console.log('Equip数据EquipLevel：',EquipLevel)
-                                console.log('Equip数据EquipLevelnumber：',EquipLevelnumber)
+                                
                                 console.log('Equip数据EquipProcessorder：', EquipProcessorder)
 
-    },  
-        // console.log(Equip)
-        // if (EquipLeveli ==='1'){
-            
-            // for (var i=0;i<EquipProcessorder.length;i++){
-               
-                    // for(var j=0;j<Equip.length;j++){
-                        
-                    //     let timeDate = this.newScheduleRecord.date //获取排程日期
-                    //     let timeStart = timeDate + ' ' + '08:30:00'
-                    //     let timeStampStart = Date.parse(new Date(timeStart))//设备加工时间字符串更改为时间戳
-                    //     let timeProcess = 1000 * Equip[j].ct * this.newScheduleRecord.number
-                    //     let timeStampEnd = timeStampStart + timeProcess       //3级设备加工结束时间时间戳
-                    //     let timeEnd = this.timeCalculate(timeStampEnd) //调用函数时间戳转化为字符串
-                    //     let equipmentUpadateList={}
-                    //     equipmentUpadateList.equipid = Equip[j].equipid
-                    //     equipmentUpadateList.starttime = timeStart
-                    //     equipmentUpadateList.endtime = timeEnd
-                    //      await axios({
-                    //          url: 'http://localhost:8080/updateEquipment',
-                    //          method: 'POST',
-                    //          data: equipmentUpadateList,
-                    //      }).then(res => {console.log(Equip[j])})
-                    // }
-                    //     let timeDate = this.newScheduleRecord.date //获取排程日期
-                    //     let timeStart = timeDate + ' ' + '08:30:00'
-                    //     let timeStampStart = Date.parse(new Date(timeStart))//设备加工时间字符串更改为时间戳
-                    //     let timeProcess = 1000 * Equip[j].ct * this.newScheduleRecord.number
-                    //     let timeStampEnd = timeStampStart + timeProcess       //3级设备加工结束时间时间戳
-                    //     let timeEnd = this.timeCalculate(timeStampEnd) //调用函数时间戳转化为字符串
-                    //     let equipmentUpadateList={}
-                    //     equipmentUpadateList.equipid = Equip[j].equipid
-                    //     equipmentUpadateList.starttime = timeStart
-                    //     equipmentUpadateList.endtime = timeEnd
-                    //      axios({
-                    //          url: 'http://localhost:8080/updateEquipment',
-                    //          method: 'POST',
-                    //          data: equipmentUpadateList,
-                    //      }).then(res => {
-                             
-                    //      })
-                    //                                 }
-                
+                                //------
+                        setTimeout(() => {
+                        this.timeCalculate2()
+                    }, 300);               
 
-            // }
-        // }
-        // else{
-        //     console.log("2222222")
-        // }
+    },  
+
+            timeCalculate2(){
+                
+                // console.log(EquipmentBomData) 数据成功加载
+                for (var i = 0; i < EquipmentBomData.length; i++) {
+
+                    if(EquipmentBomData[i].level===1){
+
+                        if(EquipmentBomData[i].levelnumber===1){
+
+                            if(EquipmentBomData[i].processorder===1){
+
+                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : EquipmentBomData[i].endtime //3级设备加工开始时间字符串
+                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                //时间戳加工时间计算
+                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
+                                let timeStampEnd = timeStampStart + timeProcess      //3级设备加工结束时间时间戳
+                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                  //设备开始加工时间与结束时间
+                                let equipmentUpadateList={}
+                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                equipmentUpadateList.starttime = timeStart
+                                equipmentUpadateList.endtime = timeEnd
+                                axios({
+                                    url: 'http://localhost:8080/updateEquipment',
+                                    method: 'POST',
+                                    data: equipmentUpadateList,
+                                })
+
+                            }
+                        }
+
+                    }
+
+
+
+
+
+                }
+
+    },
+
+        
         
 
 
