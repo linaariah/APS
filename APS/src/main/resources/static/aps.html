@@ -1365,7 +1365,26 @@
 
                                 // this.getEquipLevel()暂时不需要
 
-                                this.compute()
+                                axios({
+                                    url: 'http://localhost:8080/searchEquipmentBom3',
+                                    method: 'GET',
+                                    params: {
+                                        model:this.newScheduleRecord.model,
+                                        equipid:'',
+                                        equipname:'',
+                                        processname:'',
+                                        equipnumber:'',
+                                        ct:'',
+                                        level:'',
+                                        levelnumber:'',
+                                        processorder:'',
+                                        part:''
+                                    }
+                                        }).then(res => {
+                                            window.EquipmentBomData=res.data
+                                            this.compute()
+                                        })
+                                
                     
                                 //             setTimeout(() => {
                                     
@@ -1391,7 +1410,7 @@
    
 
         compute(){
-                
+                // console.log(EquipmentBomData)
 
                 for (var i = 0; i < EquipmentBomData.length; i++) {
 
