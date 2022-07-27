@@ -9,6 +9,7 @@ public class EquipmentBom {
     private String equipid;
     private String equipname;
     private String processname;
+    private Integer equipnumber;
     private Integer ct;
     private Integer level;
     private Integer levelnumber;

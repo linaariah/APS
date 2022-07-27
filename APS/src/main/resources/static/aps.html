@@ -363,42 +363,52 @@
         <el-dialog title="设备信息Bom表" :visible.sync="dialogEquipmentVisible" custom-class="dialogEquipmentVisible">
         
             <span style='color: #909399;font-weight:bolder;'>产品型号：</span>
-            <el-input placeholder="请输入产品型号" style='width:150px;margin:0px 10px 10px 0px;' v-model.trim="newEquipmentBom.model">
+            <el-input placeholder="请输入产品型号" style='width:170px;margin:0px 10px 10px 0px;' v-model.trim="newEquipmentBom.model">
             </el-input>
         
             <span style='color: #909399;font-weight:bolder;'>设备名称：</span>
-            <el-input :disabled="true" placeholder="请选择加工的设备" style='width:270px;margin:0px 10px 10px 0px;'
+            <el-input :disabled="true" placeholder="请选择加工的设备" style='width:300px;margin:0px 10px 10px 0px;'
                 v-model="newEquipmentBom.equipname">
-                <el-button slot="append" icon="el-icon-search" @click="chooseEquipment">选择设备</el-button>
+                <el-button slot="append" icon="el-icon-search" @click="chooseEquipment" >选择设备</el-button>
             </el-input>
         
             <span style='color: #909399;font-weight:bolder;'>设备编号：</span>
-            <el-input :disabled="true" placeholder="请选择加工的设备" style='width:170px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.equipid">
+            <el-input :disabled="true" placeholder="" style='width:106px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.equipid">
             </el-input>
         
             <span style='color: #909399;font-weight:bolder;'>工序名称：</span>
             <el-input style='width:150px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.processname" placeholder="请输入工序名称">
             </el-input>
-        
-            <span style='color: #909399;font-weight:bolder;'>节拍时间(/s)：</span>
-            <el-input style='width:110px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.ct " oninput ="value=value.replace(/[^\d]/g,'')" placeholder="请输入节拍"></el-input>
+
+            <span style='color: #909399;font-weight:bolder;'>该工序设备数量：</span>
+            <el-input style='width:100px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.equipnumber" oninput ="value=value.replace(/[^\d]/g,'')" placeholder="如1、2……">
+            </el-input>
         </br>
 
+    
         <div style="margin-top: 25px;">
-            <span style='color: #909399;font-weight:bolder;'>零件名称：</span>
-            <el-input style='width:150px;margin:0px 10px 10px 0px;' v-model.trim="newEquipmentBom.part" placeholder="请输入零件名称"></el-input>
+            <span style='color: #909399;font-weight:bolder;'>节拍时间(/s)：</span>
+            <el-popover ref="popover" placement="top" width="190" trigger="focus" content="请输入节拍时间，如5、15……"></el-popover>
+            <el-input style='width:60px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.ct " oninput ="value=value.replace(/[^\d]/g,'')" v-popover:popover></el-input>
         
-            <span style='color: #909399;font-weight:bolder;'>加工等级：</span>
-            <el-input style='width:100px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.level" oninput ="value=value.replace(/[^\d]/g,'')" placeholder="如1、2……"></el-input>
+      
+            <span style='color: #909399;font-weight:bolder;'>零件名称：</span>
+            
+            <el-select style='width:150px;' v-model="newEquipmentBom.part" clearable placeholder="请选择零件" @change="selectChanged"><el-option v-for="item in part" :key="item.value" :label="item.label" :value="item.value"></el-option></el-select>
+
+
+            <span style='color: #909399;font-weight:bolder;margin-left: 10px;'>加工等级：</span>
+            <el-input style='width:40px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.level" :disabled="true"></el-input>
         
             <span style='color: #909399;font-weight:bolder;'>该等级的零件序号：</span>
-            <el-input style='width:100px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.levelnumber" oninput ="value=value.replace(/[^\d]/g,'')" placeholder="如1、2……">
+            <el-input style='width:40px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.levelnumber" :disabled="true">
             </el-input>
         
             <span style='color: #909399;font-weight:bolder;'>该等级该零件序号的加工次序：</span>
-            <el-input style='width:100px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.processorder" oninput ="value=value.replace(/[^\d]/g,'')" placeholder="如1、2……">
+            <el-popover ref="popover2" placement="top" width="180" trigger="focus" content="请输入加工次序，如1、2……"></el-popover>
+            <el-input style='width:40px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.processorder" oninput ="value=value.replace(/[^\d]/g,'')" v-popover:popover2>
             </el-input>
-            
+        
             <el-button type="primary" plain icon="el-icon-refresh-right" @click="resetEquipmentBom" style="margin-left: 21px;">重置</el-button>
             <el-button type="primary" plain icon="el-icon-edit" @click="addEquipmentBom">添加</el-button>
             <el-button type="primary" plain icon="el-icon-search" @click="searchEquipmentBom">搜索</el-button>
@@ -409,6 +419,7 @@
                 <el-table-column prop="equipid" label="设备编号"></el-table-column>
                 <el-table-column prop="equipname" label="设备名称" width="220px"></el-table-column>
                 <el-table-column prop="processname" label="工序名称"></el-table-column>
+                <el-table-column prop="equipnumber" label="设备数量"></el-table-column>
                 <el-table-column prop="ct" label="节拍时间(/s)"></el-table-column>
                 <el-table-column prop="part" label="零件名称"></el-table-column>
                 <el-table-column prop="level" label="加工等级"></el-table-column>
@@ -441,7 +452,7 @@
             <el-table :data="equipmentDataList" height="450" stripe highlight-current-row @current-change="handleCurrentEquipmentChooseChange" fit>
                 
                 <el-table-column prop="equipid" label="设备编号"></el-table-column>
-                <el-table-column prop="equipname" label="设备名称"></el-table-column>
+                <el-table-column prop="equipname" label="设备名称" width="220px"></el-table-column>
                 <el-table-column prop="workshopid" label="车间"></el-table-column>
                 <el-table-column prop="lineid" label="生产线"></el-table-column>
                 <el-table-column prop="stationid" label="工位"></el-table-column>
@@ -514,12 +525,43 @@
                 eqipid:'',
                 equipname:'',
                 processname:'',
+                equipnumber:'',
                 ct:'',
                 level:'',
                 levelnumber:'',
                 processorder:'',
                 part:'',
             },
+
+            part: [{
+                  value: '转子轴',
+                  label: '转子轴'
+                }, {
+                  value: '转子',
+                  label: '转子'
+                }, {
+                  value: '转子轴承组件',
+                  label: '转子轴承组件'
+                }, {
+                  value: '前端盖',
+                  label: '前端盖'
+                }, {
+                  value: '后端盖',
+                  label: '后端盖'
+                }, {
+                  value: '机座',
+                  label: '机座'
+                },{
+                  value: '定子',
+                  label: '定子'
+                },{
+                  value: '机座定子组件',
+                  label: '机座定子组件'
+                },{
+                  value: '三相异步电机',
+                  label: '三相异步电机'
+                }
+            ],
             dialogEquipmentChooseVisible: false, //选择设备
             equipmentDataList: [],//设备信息查询
             equipmentBomDataList: [],//设备信息Bom表查询
@@ -532,13 +574,13 @@
 
             firstSchedule:1,
             
-            EquipData:{
-                EquipLevel:[],
-                EquipLevelnumber:[],
-                EquipProcessorder:[]
-            }
-            // EquipLevel:[],
-            // EquipLevelnumber:[]
+            // EquipData:{
+            //     EquipLevel:[],
+            //     EquipLevelnumber:[],
+            //     EquipProcessorder:[]
+            // }
+            //暂时不用
+  
             
 
         },
@@ -965,6 +1007,43 @@
                 this.currentRow = val;
             },
 
+            //选择零件自动跳出等级
+            selectChanged(val){
+                if(val ==='转子轴'||val ==='转子'||val ==='转子轴承组件'){
+                    this.newEquipmentBom.level =1 
+                    this.newEquipmentBom.levelnumber =1
+                }
+                else if(val ==='前端盖'){
+                    this.newEquipmentBom.level =1 
+                    this.newEquipmentBom.levelnumber =2
+                }
+                else if(val ==='后端盖'){
+                    this.newEquipmentBom.level =1 
+                    this.newEquipmentBom.levelnumber =3
+                }
+                else if(val ==='机座'){
+                    this.newEquipmentBom.level =1 
+                    this.newEquipmentBom.levelnumber =4
+                }
+                else if(val ==='定子'){
+                    this.newEquipmentBom.level =1 
+                    this.newEquipmentBom.levelnumber =5
+                }
+                else if(val ==='机座定子组件'){
+                    this.newEquipmentBom.level =2 
+                    this.newEquipmentBom.levelnumber =1
+                }
+                else if(val ==='三相异步电机'){
+                    this.newEquipmentBom.level =3 
+                    this.newEquipmentBom.levelnumber =1
+                }
+                else{
+                    this.newEquipmentBom.level =''
+                    this.newEquipmentBom.levelnumber =''
+                }
+
+            },
+           
             // 设备选择确认
             EquipmentChooseConfirm(){
                 if(this.currentRow===null||typeof(this.currentRow)=='undefined'){
@@ -989,6 +1068,7 @@
                 this.newEquipmentBom.equipid=''
                 this.newEquipmentBom.equipname=''
                 this.newEquipmentBom.processname=''
+                this.newEquipmentBom.equipnumber=''
                 this.newEquipmentBom.ct=''
                 this.newEquipmentBom.level=''
                 this.newEquipmentBom.levelnumber=''
@@ -1006,19 +1086,15 @@
                 }
                 else if (this.newEquipmentBom.processname == '') {
                     this.$message.error('请输入工序名称');
-                    
+                }
+                else if (this.newEquipmentBom.equipnumber == '') {
+                    this.$message.error('输入该工序设备数量');
                 }
                 else if (this.newEquipmentBom.ct == '') {
                     this.$message.error('请输入节拍时间');
                 }
                 else if (this.newEquipmentBom.part == '') {
-                    this.$message.error('请输入零件名称');
-                }
-                else if (this.newEquipmentBom.level == '') {
-                    this.$message.error('请输入加工等级');
-                }
-                else if (this.newEquipmentBom.levelnumber == '') {
-                    this.$message.error('请输入该等级的零件序号');
+                    this.$message.error('请选择零件');
                 }
                 else if (this.newEquipmentBom.processorder == '') {
                     this.$message.error('请输入该等级该零件序号的加工次序');
@@ -1034,6 +1110,7 @@
                             equipid:this.newEquipmentBom.equipid,
                             equipname:this.newEquipmentBom.equipname,
                             processname:this.newEquipmentBom.processname,
+                            equipnumber:this.newEquipmentBom.equipnumber,
                             ct:this.newEquipmentBom.ct,
                             level:this.newEquipmentBom.level,
                             levelnumber:this.newEquipmentBom.levelnumber,
@@ -1082,6 +1159,7 @@
                             equipid:this.newEquipmentBom.equipid,
                             equipname:this.newEquipmentBom.equipname,
                             processname:this.newEquipmentBom.processname,
+                            equipnumber:this.newEquipmentBom.equipnumber,
                             ct:this.newEquipmentBom.ct,
                             level:this.newEquipmentBom.level,
                             levelnumber:this.newEquipmentBom.levelnumber,
@@ -1114,6 +1192,7 @@
                             equipid:this.newEquipmentBom.equipid,
                             equipname:this.newEquipmentBom.equipname,
                             processname:this.newEquipmentBom.processname,
+                            equipnumber:this.newEquipmentBom.equipnumber,
                             ct:this.newEquipmentBom.ct,
                             level:this.newEquipmentBom.level,
                             levelnumber:this.newEquipmentBom.levelnumber,
@@ -1139,6 +1218,7 @@
                 this.newEquipmentBom.equipid=this.currentRow.equipid
                 this.newEquipmentBom.equipname=this.currentRow.equipname
                 this.newEquipmentBom.processname=this.currentRow.processname
+                this.newEquipmentBom.equipnumber=this.currentRow.equipnumber
                 this.newEquipmentBom.ct=this.currentRow.ct
                 this.newEquipmentBom.level=this.currentRow.level
                 this.newEquipmentBom.levelnumber=this.currentRow.levelnumber
@@ -1149,7 +1229,7 @@
             //删除设备Bom
             deleteEquipmentBom(){
                 this.visible = false
-                if(this.newEquipmentBom.model == ''||this.newEquipmentBom.equipid==''||this.newEquipmentBom.equipname==''||this.newEquipmentBom.processname==''||this.newEquipmentBom.ct==''||this.newEquipmentBom.level==''||this.newEquipmentBom.levelnumber==''||this.newEquipmentBom.processorder==''||this.newEquipmentBom.part=='')
+                if(this.newEquipmentBom.model == ''||this.newEquipmentBom.equipid==''||this.newEquipmentBom.equipname==''||this.newEquipmentBom.processname==''||this.newEquipmentBom.equipnumber==''||this.newEquipmentBom.ct==''||this.newEquipmentBom.level==''||this.newEquipmentBom.levelnumber==''||this.newEquipmentBom.processorder==''||this.newEquipmentBom.part=='')
                 {
                     this.$message.warning('请选择要删除的设备信息Bom数据！'); 
                 }
@@ -1164,6 +1244,7 @@
                             equipid:this.newEquipmentBom.equipid,
                             equipname:this.newEquipmentBom.equipname,
                             processname:this.newEquipmentBom.processname,
+                            equipnumber:this.newEquipmentBom.equipnumber,
                             ct:this.newEquipmentBom.ct,
                             level:this.newEquipmentBom.level,
                             levelnumber:this.newEquipmentBom.levelnumber,
@@ -1184,6 +1265,7 @@
                             equipid:'',
                             equipname:'',
                             processname:'',
+                            equipnumber:'',
                             ct:'',
                             level:'',
                             levelnumber:'',
@@ -1280,17 +1362,15 @@
                         data: this.newScheduleRecord,
                     }).then(res => {
                             if(res.data.code == 20011){
-                                this.getEquipLevel()
 
-                               
-                                setTimeout(() => {
-                                    this.timeCalculate()
-                    }, 300);
+                                // this.getEquipLevel()暂时不需要
+
+                                this.compute()
+                    
+                                //             setTimeout(() => {
+                                    
+                    // }, 300);
                    
-
-                  
-
-
 
                             }
                              else {
@@ -1306,7 +1386,92 @@
                     // -----------------------------------------
         },
 
-        getEquipLevel(){
+       
+
+   
+
+        compute(){
+                
+
+                for (var i = 0; i < EquipmentBomData.length; i++) {
+
+
+                        if(EquipmentBomData[i].level===1 &&EquipmentBomData[i].levelnumber===1){
+
+                                if(EquipmentBomData[i].processorder===1){
+
+                                    let timeDate = this.newScheduleRecord.date //获取排程日期
+                                    let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : EquipmentBomData[i].endtime //3级设备加工开始时间字符串
+                                    let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                    //时间戳加工时间计算
+                                    let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
+                                    let timeStampEnd = timeStampStart + timeProcess      //3级设备加工结束时间时间戳
+                                    let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                    //设备开始加工时间与结束时间
+                                    let equipmentUpadateList={}
+                                    equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                    equipmentUpadateList.starttime = timeStart
+                                    equipmentUpadateList.endtime = timeEnd
+                                    axios({
+                                            url: 'http://localhost:8080/updateEquipment',
+                                            method: 'POST',
+                                            data: equipmentUpadateList,
+                                        })
+
+                                }
+                            
+                            
+
+                          
+                        }
+
+                        
+                
+                
+                    
+
+
+
+                }//设备Bom数据for循环
+
+    },
+
+
+//------------------------------------------------------------------------------暂时不需要--------------------
+timeCalculate(){
+            
+            var EquipLevel=JSON.parse(JSON.stringify(this.EquipData.EquipLevel))
+            // console.log('Equip数据EquipLevel：',EquipLevel)
+            window.levelCalculate=EquipLevel
+
+            var TempEquipLevelnumber=JSON.parse(JSON.stringify(this.EquipData.EquipLevelnumber))
+            var EquipLevelnumber=[]
+            for(var i=0;i<TempEquipLevelnumber.length;i++){
+                let x = TempEquipLevelnumber[i].length
+                EquipLevelnumber.push(x)
+            }
+            // console.log('Equip数据EquipLevelnumber：',EquipLevelnumber)
+            window.levelnumberCalculate=EquipLevelnumber
+
+            var TempEquipProcessorder=JSON.parse(JSON.stringify(this.EquipData.EquipProcessorder))
+            var EquipProcessorder=[]           
+            for(var j=0;j<TempEquipProcessorder.length;j++){
+                let y = TempEquipProcessorder[j].length
+                EquipProcessorder.push(y)
+            }                         
+            // console.log('Equip数据EquipProcessorder：', EquipProcessorder)
+            window.processorderCalculate=EquipProcessorder
+
+                            //------
+                    setTimeout(() => {
+                    this.timeCalculate2()
+                }, 300);               
+// console.log('Equip数据EquipLevel：',levelCalculate,'Equip数据EquipLevelnumber：',levelnumberCalculate,'Equip数据EquipProcessorder：',processorderCalculate)
+            // console.log(EquipmentBomData) 数据成功加载
+
+},  
+
+    getEquipLevel(){
             
             axios({
                 url: 'http://localhost:8080/searchEquipmentBomForModel',
@@ -1413,120 +1578,10 @@
         
 
     },
-
-        timeCalculate(){
-            
-
-            // this.EquipData=JSON.parse(JSON.stringify(this.EquipData))
-                var EquipLevel=JSON.parse(JSON.stringify(this.EquipData.EquipLevel))
-                console.log('Equip数据EquipLevel：',EquipLevel)
-
-                var TempEquipLevelnumber=JSON.parse(JSON.stringify(this.EquipData.EquipLevelnumber))
-                var EquipLevelnumber=[]
-                for(var i=0;i<TempEquipLevelnumber.length;i++){
-                    let x = TempEquipLevelnumber[i].length
-                    EquipLevelnumber.push(x)
-                }
-                console.log('Equip数据EquipLevelnumber：',EquipLevelnumber)
-                
-
-                var TempEquipProcessorder=JSON.parse(JSON.stringify(this.EquipData.EquipProcessorder))
-                var EquipProcessorder=[]           
-                for(var j=0;j<TempEquipProcessorder.length;j++){
-                    let y = TempEquipProcessorder[j].length
-                    EquipProcessorder.push(y)
-                }
-
-
-                                // console.log('Equip数据：',this.EquipData)
-                                
-                                console.log('Equip数据EquipProcessorder：', EquipProcessorder)
-
-                                //------
-                        setTimeout(() => {
-                        this.timeCalculate2()
-                    }, 300);               
-
-    },  
-
-            timeCalculate2(){
-                
-                // console.log(EquipmentBomData) 数据成功加载
-                for (var i = 0; i < EquipmentBomData.length; i++) {
-
-                    if(EquipmentBomData[i].level===1){
-
-                        if(EquipmentBomData[i].levelnumber===1){
-
-                            if(EquipmentBomData[i].processorder===1){
-
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : EquipmentBomData[i].endtime //3级设备加工开始时间字符串
-                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
-                                let timeStampEnd = timeStampStart + timeProcess      //3级设备加工结束时间时间戳
-                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
-                                  //设备开始加工时间与结束时间
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
-                                equipmentUpadateList.starttime = timeStart
-                                equipmentUpadateList.endtime = timeEnd
-                                axios({
-                                    url: 'http://localhost:8080/updateEquipment',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                })
-
-                            }
-                        }
-
-                    }
-
-
-
-
-
-                }
-
-    },
+    //------------------------------------------------------------------------------暂时不需要--------------------
 
         
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -142,12 +142,13 @@ public class APSController {
     };
 
     @GetMapping("/deleteEquipmentBom")
-    public void deleteEquipmentBom(@RequestParam String model,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String processname,@RequestParam String part,@RequestParam String ct,@RequestParam String level,@RequestParam String processorder,@RequestParam String levelnumber){
+    public void deleteEquipmentBom(@RequestParam String model,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String processname,@RequestParam String equipnumber,@RequestParam String part,@RequestParam String ct,@RequestParam String level,@RequestParam String processorder,@RequestParam String levelnumber){
         QueryWrapper queryWrapper = new QueryWrapper<EquipmentBom>();
         queryWrapper.eq("model",model);
         queryWrapper.eq("equipid",equipid);
         queryWrapper.eq("equipname",equipname);
         queryWrapper.eq("processname",processname);
+        queryWrapper.eq("equipnumber",equipnumber);
         queryWrapper.eq("ct",ct);
         queryWrapper.eq("level",level);
         queryWrapper.eq("levelnumber",levelnumber);
@@ -158,12 +159,13 @@ public class APSController {
 
     //搜索EquipmentBom
     @GetMapping("/searchEquipmentBom")
-    public List<EquipmentBom> searchEquipmentBom(@RequestParam String model,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String processname,@RequestParam String part,@RequestParam String ct,@RequestParam String level,@RequestParam String processorder,@RequestParam String levelnumber){
+    public List<EquipmentBom> searchEquipmentBom(@RequestParam String model,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String processname,@RequestParam String equipnumber,@RequestParam String part,@RequestParam String ct,@RequestParam String level,@RequestParam String processorder,@RequestParam String levelnumber){
         QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
             queryWrapper.like("model",model);
             queryWrapper.like("equipid",equipid);
             queryWrapper.like("equipname",equipname);
             queryWrapper.like("processname",processname);
+            queryWrapper.like("equipnumber",equipnumber);
             queryWrapper.like("ct",ct);
             queryWrapper.like("level",level);
             queryWrapper.like("levelnumber",levelnumber);
@@ -174,12 +176,13 @@ public class APSController {
             return equipmentBomList;
     };
     @GetMapping("/searchEquipmentBom2")
-    public List<EquipmentBom> searchEquipmentBom2(@RequestParam String model,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String processname,@RequestParam String part,@RequestParam String ct,@RequestParam String level,@RequestParam String processorder,@RequestParam String levelnumber){
+    public List<EquipmentBom> searchEquipmentBom2(@RequestParam String model,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String processname,@RequestParam String equipnumber,@RequestParam String part,@RequestParam String ct,@RequestParam String level,@RequestParam String processorder,@RequestParam String levelnumber){
         QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("model",model);
         queryWrapper.eq("equipid",equipid);
         queryWrapper.eq("equipname",equipname);
         queryWrapper.eq("processname",processname);
+        queryWrapper.eq("equipnumber",equipnumber);
         queryWrapper.eq("ct",ct);
         queryWrapper.eq("level",level);
         queryWrapper.eq("levelnumber",levelnumber);
@@ -190,12 +193,13 @@ public class APSController {
         return equipmentBomList;
     };
     @GetMapping("/searchEquipmentBom3")
-    public List<EquipmentBom> searchEquipmentBom3(@RequestParam String model,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String processname,@RequestParam String part,@RequestParam String ct,@RequestParam String level,@RequestParam String processorder,@RequestParam String levelnumber){
+    public List<EquipmentBom> searchEquipmentBom3(@RequestParam String model,@RequestParam String equipid,@RequestParam String equipname,@RequestParam String processname,@RequestParam String equipnumber,@RequestParam String part,@RequestParam String ct,@RequestParam String level,@RequestParam String processorder,@RequestParam String levelnumber){
         QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("model",model);
         queryWrapper.like("equipid",equipid);
         queryWrapper.like("equipname",equipname);
         queryWrapper.like("processname",processname);
+        queryWrapper.like("equipnumber",equipnumber);
         queryWrapper.like("ct",ct);
         queryWrapper.like("level",level);
         queryWrapper.like("levelnumber",levelnumber);
@@ -205,40 +209,41 @@ public class APSController {
         List<EquipmentBom> equipmentBomList = equipmentBomDao.selectList(queryWrapper);
         return equipmentBomList;
     };
-
-    @GetMapping("/searchEquipmentBomForModel")
-    public List<EquipmentBom> searchEquipmentBomForSchedule(@RequestParam String model,@RequestParam String level,@RequestParam String levelnumber){
-        QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("model",model);
-        queryWrapper.like("level",level);
-        queryWrapper.like("levelnumber",levelnumber);
-//        queryWrapper.like("processorder",processorder);
-        queryWrapper.orderByAsc("level").orderByAsc("levelnumber").orderByAsc("processorder").orderByAsc("equipid");
-        List<EquipmentBom> equipmentBomList = equipmentBomDao.selectList(queryWrapper);
-        return equipmentBomList;
-    };
-
-    @GetMapping("/searchEquipmentBomForLevelnumber")
-    public List<EquipmentBom> searchEquipmentBomForLevelnumber(@RequestParam String model,@RequestParam String level,@RequestParam String levelnumber){
-        QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("model",model);
-        queryWrapper.eq("level",level);
-        queryWrapper.like("levelnumber",levelnumber);
-//        queryWrapper.like("processorder",processorder);
-        queryWrapper.orderByAsc("level").orderByAsc("levelnumber").orderByAsc("processorder").orderByAsc("equipid");
-        List<EquipmentBom> equipmentBomList = equipmentBomDao.selectList(queryWrapper);
-        return equipmentBomList;
-    };
-    @GetMapping("/searchEquipmentBomForProcessorder")
-    public List<EquipmentBom> searchEquipmentBomForProcessorder(@RequestParam String model,@RequestParam String level,@RequestParam String levelnumber){
-        QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("model",model);
-        queryWrapper.eq("level",level);
-        queryWrapper.eq("levelnumber",levelnumber);
-        queryWrapper.orderByAsc("level").orderByAsc("levelnumber").orderByAsc("processorder").orderByAsc("equipid");
-        List<EquipmentBom> equipmentBomList = equipmentBomDao.selectList(queryWrapper);
-        return equipmentBomList;
-    };
+//-------------------------------------------------------暂时不用
+//    @GetMapping("/searchEquipmentBomForModel")
+//    public List<EquipmentBom> searchEquipmentBomForSchedule(@RequestParam String model,@RequestParam String level,@RequestParam String levelnumber){
+//        QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("model",model);
+//        queryWrapper.like("level",level);
+//        queryWrapper.like("levelnumber",levelnumber);
+////        queryWrapper.like("processorder",processorder);
+//        queryWrapper.orderByAsc("level").orderByAsc("levelnumber").orderByAsc("processorder").orderByAsc("equipid");
+//        List<EquipmentBom> equipmentBomList = equipmentBomDao.selectList(queryWrapper);
+//        return equipmentBomList;
+//    };
+//
+//    @GetMapping("/searchEquipmentBomForLevelnumber")
+//    public List<EquipmentBom> searchEquipmentBomForLevelnumber(@RequestParam String model,@RequestParam String level,@RequestParam String levelnumber){
+//        QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("model",model);
+//        queryWrapper.eq("level",level);
+//        queryWrapper.like("levelnumber",levelnumber);
+////        queryWrapper.like("processorder",processorder);
+//        queryWrapper.orderByAsc("level").orderByAsc("levelnumber").orderByAsc("processorder").orderByAsc("equipid");
+//        List<EquipmentBom> equipmentBomList = equipmentBomDao.selectList(queryWrapper);
+//        return equipmentBomList;
+//    };
+//    @GetMapping("/searchEquipmentBomForProcessorder")
+//    public List<EquipmentBom> searchEquipmentBomForProcessorder(@RequestParam String model,@RequestParam String level,@RequestParam String levelnumber){
+//        QueryWrapper<EquipmentBom> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("model",model);
+//        queryWrapper.eq("level",level);
+//        queryWrapper.eq("levelnumber",levelnumber);
+//        queryWrapper.orderByAsc("level").orderByAsc("levelnumber").orderByAsc("processorder").orderByAsc("equipid");
+//        List<EquipmentBom> equipmentBomList = equipmentBomDao.selectList(queryWrapper);
+//        return equipmentBomList;
+//    };
+    //-------------------------------------------------------暂时不用
 
 
 
