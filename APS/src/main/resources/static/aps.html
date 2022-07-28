@@ -522,7 +522,7 @@
             dialogEquipmentVisible: false,//设备信息编辑
             newEquipmentBom:{
                 model:'',
-                eqipid:'',
+                equipid:'',
                 equipname:'',
                 processname:'',
                 equipnumber:'',
@@ -731,17 +731,18 @@
 
             //排程记录弹窗确认
             confirmRecord() {
+                this.loadingRecordDetail=true
                 if(this.newScheduleRecord.productionNumber===''){
                     // ||this.newScheduleRecord.productionNumber===null
                     // this.recordCancel();
                 this.dialogRecordVisible = false;
                 this.newScheduleRecordResetInput();
+                this.clearRecordDetail();
                 this.newScheduleRecord.productionNumber =''
                 this.getRecordDetail();//如果为空默认查找所有数据
                 }
                 else{
                 this.loadingRecordDetail=false
-
                 this.dialogRecordVisible = false;
                 this.newScheduleRecord.productionNumber=this.currentRow.productionNumber
                 this.newScheduleRecord.orderNumber=this.currentRow.orderNumber
@@ -807,13 +808,14 @@
                     this.loadingRecord = false
                     
                     
+                    
                         this.$message({
                             message: '删除成功',
                             type: 'success'
                         })
                     
                     //删除成功标语
-                    this.newScheduleRecord.productionNumber=''
+                    this.newScheduleRecordResetInput()
 
                 }).finally(() => {
                     this.getRecord();
@@ -823,7 +825,8 @@
                     method: 'POST',
                     data: this.newScheduleRecord,
                 }).then(res => {
-                    this.loadingRecord = false
+                    this.loadingRecordDetail = false
+                    this.clearRecordDetail()
                 }).finally(() => {
                     this.getRecordDetail();
                 })
@@ -908,6 +911,7 @@
 
             //分页选择器
             handleCurrentPageChange(val){
+                this.loadingRecordDetail=true
                 this.currentPage=val
                 // console.log("选中了第几页",val)
                 axios({
@@ -917,7 +921,7 @@
                     //     current: this.currentPage,
                     //     productionNumber: this.newScheduleRecord.productionNumber
                     // }
-                    url: "http://localhost:8080/recordDetailListSearch",
+                    url: "http://localhost:8080/searchRecordDetail",
                     method: 'GET',
                     params:{
                         current:this.currentPage,
@@ -932,6 +936,7 @@
                 }).then(res => {
                     this.recordDetailDataList = res.data.data;
                     this.pageTotal=res.data.total
+                    this.loadingRecordDetail=false
                 })
             },
 
@@ -963,8 +968,12 @@
             },
             confirmModel() {
                 this.dialogModelVisible = false;
+                if(this.currentRow===null||typeof(this.currentRow)=='undefined'){
+                    this.newScheduleRecord.model=''
+                }
+                else{
                 this.newScheduleRecord.model = this.currentRow.model;
-
+                }
             },
 
             handleCurrentChangeModel(val) {
@@ -1306,10 +1315,12 @@
 
             //-----------------------calculate
             calculate(){
-    
-        this.scheduleButton = true
-        //创建时间获取
-        let date = new Date();
+        
+                this.scheduleButton = true
+                this.loadingRecordDetail=true
+                this.searchRecordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                //创建时间获取
+                let date = new Date();
                 let year = date.getFullYear();
                 let month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
                 let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
@@ -1342,27 +1353,30 @@
                 if (this.newScheduleRecord.productionNumber == '') {
                     this.$message.error('请输入生产任务单号');
                     this.scheduleButton = false
+                    this.loadingRecordDetail=false
                     return
                 }
                 else if (this.newScheduleRecord.model == '') {
                     this.$message.error('请选择产品型号');
                     this.scheduleButton = false
+                    this.loadingRecordDetail=false
                     return
                 }
                 else if (this.newScheduleRecord.date == ''||this.newScheduleRecord.date===null) {
                     this.$message.error('请选择排产日期');
                     this.scheduleButton = false
+                    this.loadingRecordDetail=false
                     return
                     
                 }
                 else {
+                    this.$message('计算中，请稍后……');
                     axios({
                         url: 'http://localhost:8080/addRecord',
                         method: 'POST',
                         data: this.newScheduleRecord,
                     }).then(res => {
-                            if(res.data.code == 20011){
-
+                            if(res.data.code == 20011){                               
                                 // this.getEquipLevel()暂时不需要
 
                                 axios({
@@ -1382,7 +1396,7 @@
                                     }
                                         }).then(res => {
                                             window.EquipmentBomData=res.data
-                                            this.compute()
+                                            this.compute()                                                                                                                        
                                         })
                                 
                     
@@ -1394,70 +1408,1306 @@
                             }
                              else {
                             this.$message.error('该生产任务单号已经存在！请重新输入！');
+                            this.scheduleButton = true
                             }
                     }).finally(() => {
                             this.getRecord();
-                            this.getRecordDetail();
-                            this.scheduleButton = false
-                            
-                        });//finally
+                            // this.scheduleButton = false                                                                                    
+                       });//finally
                 }
                     // -----------------------------------------
         },
 
        
-
-   
-
-        compute(){
+        async compute(){
+                    var timeEndList1 = [] //1.1级
+                    var timeEndList2 = [] //1.2级
+                    var timeEndList3 = [] //1.3级
+                    var timeEndList4 = [] //1.4级
+                    var timeEndList5 = [] //1.5级
+                    var timeEndList6 = [] //2.1级
+                    var timeEndList7 = [] //3.1级
                 // console.log(EquipmentBomData)
-
+                // console.log(this.firstSchedule)
                 for (var i = 0; i < EquipmentBomData.length; i++) {
 
-
-                        if(EquipmentBomData[i].level===1 &&EquipmentBomData[i].levelnumber===1){
-
-                                if(EquipmentBomData[i].processorder===1){
-
-                                    let timeDate = this.newScheduleRecord.date //获取排程日期
-                                    let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : EquipmentBomData[i].endtime //3级设备加工开始时间字符串
-                                    let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
-                                    //时间戳加工时间计算
-                                    let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
-                                    let timeStampEnd = timeStampStart + timeProcess      //3级设备加工结束时间时间戳
-                                    let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
-                                    //设备开始加工时间与结束时间
-                                    let equipmentUpadateList={}
-                                    equipmentUpadateList.equipid = EquipmentBomData[i].equipid
-                                    equipmentUpadateList.starttime = timeStart
-                                    equipmentUpadateList.endtime = timeEnd
-                                    axios({
-                                            url: 'http://localhost:8080/updateEquipment',
-                                            method: 'POST',
-                                            data: equipmentUpadateList,
-                                        })
-
-                                }
-                            
-                            
-
-                          
-                        }
-
+                    //执行结束刷新recordDetail
+                    if(i==EquipmentBomData.length-1){
+                        this.getRecordDetail();
+                        this.scheduleButton = false
                         
-                
-                
+                this.currentPage=1
+                axios({
+                    url: "http://localhost:8080/searchRecordDetail",
+                    method: 'GET',
+                    params:{
+                        current:this.currentPage,
+                        productionNumber:this.searchRecordDetailList.productionNumber,
+                        model: this.searchRecordDetailList.model,
+                        number: this.searchRecordDetailList.number,
+                        equipid: this.searchRecordDetailList.equipid,
+                        equipname: this.searchRecordDetailList.equipname,
+                        starttime: this.searchRecordDetailList.starttime,
+                        endtime: this.searchRecordDetailList.endtime,
+                    }
+                }).then(res => {
                     
+                    this.recordDetailDataList = res.data.data;
+                    this.pageTotal=res.data.total
+                    this.loadingRecordDetail=false
+                })
+                    }
+
+                   await axios({
+                                    url: 'http://localhost:8080/getEquipmentTime',
+                                    method: 'GET',
+                                    params: {
+                                        equipid:EquipmentBomData[i].equipid,
+                                    }
+                                        }).then(res => {
+                                            
+                                            if(EquipmentBomData[i].level===1 &&EquipmentBomData[i].levelnumber===1){
+                                            
+                                                if(EquipmentBomData[i].processorder===1){
+
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : res.data[0].endtime //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber                  //毫秒，每台设备不一致
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd 
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                               else if(EquipmentBomData[i].processorder===2){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[0]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[0] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===3){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[1]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[1] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===4){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[2]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[2] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===5){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[3]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[3] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===6){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[4]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[4] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===7){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[5]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[5] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===8){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[6]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[6] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===9){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[7]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[7] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===10){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[8]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[8] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===11){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList1[9]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList1[9] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList1.push(timeEnd)
+                                                this.repeat(timeEndList1)
+
+                                               
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                            }//level
+
+                                           else if(EquipmentBomData[i].level===1 &&EquipmentBomData[i].levelnumber===2){
+                                             
+                                                if(EquipmentBomData[i].processorder===1){
+
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : res.data[0].endtime //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber                  //毫秒，每台设备不一致
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList2.push(timeEnd)
+                                                this.repeat(timeEndList2)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd 
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===2){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList2[0]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList2[0] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList2.push(timeEnd)
+                                                this.repeat(timeEndList2)
+
+                                                
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                            }//level
+
+                                           else if(EquipmentBomData[i].level===1 &&EquipmentBomData[i].levelnumber===3){
+
+                                                if(EquipmentBomData[i].processorder===1){
+
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : res.data[0].endtime //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber                  //毫秒，每台设备不一致
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList3.push(timeEnd)
+                                                this.repeat(timeEndList3)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd 
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===2){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList3[0]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList3[0] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList3.push(timeEnd)
+                                                this.repeat(timeEndList3)
+                                                
+                                                
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                            
+                                            }//level
+
+                                            else if(EquipmentBomData[i].level===1 &&EquipmentBomData[i].levelnumber===4){
+
+                                                if(EquipmentBomData[i].processorder===1){
+
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : res.data[0].endtime //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber                  //毫秒，每台设备不一致
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList4.push(timeEnd)
+                                                this.repeat(timeEndList4)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd 
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===2){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList4[0]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList4[0] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList4.push(timeEnd)
+                                                this.repeat(timeEndList4)
+                                                
+                                                
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+                                           
+                                            }//level
+
+                                            else if(EquipmentBomData[i].level===1 &&EquipmentBomData[i].levelnumber===5){
+
+                                                if(EquipmentBomData[i].processorder===1){
+
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                let timeStart =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : res.data[0].endtime //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber                  //毫秒，每台设备不一致
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+
+                                                timeEndList5.push(timeEnd)
+                                                this.repeat(timeEndList5)
+
+                                                axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd 
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                               else if(EquipmentBomData[i].processorder===2){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList5[0]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList5[0] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList5.push(timeEnd)
+                                                this.repeat(timeEndList5)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===3){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList5[1]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList5[1] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList5.push(timeEnd)
+                                                this.repeat(timeEndList5)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===4){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList5[2]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList5[2] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList5.push(timeEnd)
+                                                this.repeat(timeEndList5)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===5){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList5[3]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList5[3] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList5.push(timeEnd)
+                                                this.repeat(timeEndList5)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===6){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList5[4]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList5[4] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList5.push(timeEnd)
+                                                this.repeat(timeEndList5)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===7){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList5[5]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList5[5] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList5.push(timeEnd)
+                                                this.repeat(timeEndList5)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+
+                                                else if(EquipmentBomData[i].processorder===8){
+                                                let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList5[6]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList5[6] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList5.push(timeEnd)
+                                                this.repeat(timeEndList5)
+                               
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+                                                }//order
+                                                                                            
+                                            }//level
+
+                                            else if(EquipmentBomData[i].level===2 &&EquipmentBomData[i].levelnumber===1){
+                                                
+                                                if(EquipmentBomData[i].processorder===1){
+                                                    let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                    //时间比较1.4、1.5
+                                                    let compareArr=[Date.parse(new Date(timeEndList4[timeEndList4.length-1])),Date.parse(new Date(timeEndList5[timeEndList5.length-1]))]
+                                                    // console.log("时间最大值",this.timeTransform(Math.max.apply(null,compareArr)))
+                                                    let a = Math.max.apply(null,compareArr)
+                                                    let b= Date.parse(new Date(res.data[0].endtime))
+                                                    let c= (a>b) ? a : b
+                                                    let MaxtimeStart= this.timeTransform(c)
+                                                    let timeStart =(this.firstSchedule===1) ? this.timeTransform(Math.max.apply(null,compareArr)) : MaxtimeStart //2级设备加工开始时间字符串
+                                                    let timeStampStart = Date.parse(new Date(timeStart))//2级设备加工时间字符串更改为时间戳
+                                                    //时间戳加工时间计算
+                                                    let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                    let timeStampEnd = timeStampStart + timeProcess      //2级设备加工结束时间时间戳
+                                                    let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                    //设备开始加工时间与结束时间
+                                                    let equipmentUpadateList={}
+                                                    equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                    equipmentUpadateList.starttime = timeStart
+                                                    equipmentUpadateList.endtime = timeEnd
+                                                    timeEndList6.push(timeEnd)
+                                                    this.repeat(timeEndList6)
 
 
+                                                    axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                    let recordDetailList={}
+                                                    recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                    recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                    recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                    recordDetailList.number=this.newScheduleRecord.number
+                                                    recordDetailList.model=this.newScheduleRecord.model
+                                                    recordDetailList.starttime = timeStart
+                                                    recordDetailList.endtime = timeEnd
+                                                    axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                     })
 
+                                                    }//order
+                                            
+                                            }//level
+                                            
+                                            else if(EquipmentBomData[i].level===3 &&EquipmentBomData[i].levelnumber===1){
+
+                                                if(EquipmentBomData[i].processorder===1){
+                                                    let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                    //时间比较1.1、1.2、1.3、2.1
+                                                    let compareArr=[Date.parse(new Date(timeEndList1[timeEndList1.length-1])),Date.parse(new Date(timeEndList2[timeEndList2.length-1])),Date.parse(new Date(timeEndList3[timeEndList3.length-1])),Date.parse(new Date(timeEndList6[timeEndList6.length-1]))]
+                                                    // console.log("时间最大值",this.timeTransform(Math.max.apply(null,compareArr)))
+                                                    let a = Math.max.apply(null,compareArr)
+                                                    let b= Date.parse(new Date(res.data[0].endtime))
+                                                    let c= (a>b) ? a : b
+                                                    let MaxtimeStart= this.timeTransform(c)
+                                                    let timeStart =(this.firstSchedule===1) ? this.timeTransform(Math.max.apply(null,compareArr)) : MaxtimeStart //1级设备加工开始时间字符串
+                                                    let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                    //时间戳加工时间计算
+                                                    let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                    let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                    let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                    //设备开始加工时间与结束时间
+                                                    let equipmentUpadateList={}
+                                                    equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                    equipmentUpadateList.starttime = timeStart
+                                                    equipmentUpadateList.endtime = timeEnd
+                                                    timeEndList7.push(timeEnd)
+                                                    this.repeat(timeEndList7)
+
+                                                    axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                    let recordDetailList={}
+                                                    recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                    recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                    recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                    recordDetailList.number=this.newScheduleRecord.number
+                                                    recordDetailList.model=this.newScheduleRecord.model
+                                                    recordDetailList.starttime = timeStart
+                                                    recordDetailList.endtime = timeEnd
+                                                    axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                     })
+
+                                                    }//order
+
+                                                else if(EquipmentBomData[i].processorder===2){
+
+                                                    let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList7[0]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList7[0] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList7.push(timeEnd)
+                                                this.repeat(timeEndList7)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+
+                                                   }//order
+
+                                                else if(EquipmentBomData[i].processorder===3){
+
+                                                    let timeDate = this.newScheduleRecord.date //获取排程日期
+                                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
+                                                let a = Date.parse(new Date(timeEndList7[1]))
+                                                let b= Date.parse(new Date(res.data[0].endtime))             
+                                                let c= (a>b) ? a : b
+                                                let  MaxtimeStart= this.timeTransform(c)
+                                                let timeStart =(this.firstSchedule===1) ? timeEndList7[1] : MaxtimeStart //1级设备加工开始时间字符串
+                                                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
+                                                //时间戳加工时间计算
+                                                let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
+                                                let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
+                                                let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
+                                                //设备开始加工时间与结束时间
+                                                let equipmentUpadateList={}
+                                                equipmentUpadateList.equipid = EquipmentBomData[i].equipid
+                                                equipmentUpadateList.starttime = timeStart
+                                                equipmentUpadateList.endtime = timeEnd
+                                                timeEndList7.push(timeEnd)
+                                                this.repeat(timeEndList7)
+                                               axios({
+                                                        url: 'http://localhost:8080/updateEquipment',
+                                                        method: 'POST',
+                                                        data: equipmentUpadateList,
+                                                    })
+                                                let recordDetailList={}
+                                                recordDetailList.equipid = EquipmentBomData[i].equipid
+                                                recordDetailList.equipname=EquipmentBomData[i].equipname
+                                                recordDetailList.productionNumber=this.newScheduleRecord.productionNumber
+                                                recordDetailList.number=this.newScheduleRecord.number
+                                                recordDetailList.model=this.newScheduleRecord.model
+                                                recordDetailList.starttime = timeStart
+                                                recordDetailList.endtime = timeEnd
+                                                axios({
+                                                        url: 'http://localhost:8080/addRecordDetail',
+                                                        method: 'POST',
+                                                        data: recordDetailList,
+                                                    })
+
+                                                    }//order
+                                           
+                                            }//level
+
+                                        })//axios.then结束
+                              
                 }//设备Bom数据for循环
+                    // console.log("for循环结束打印1.1：",timeEndList1)
+                    // console.log("for循环结束打印1.2：",timeEndList2)
+                    // console.log("for循环结束打印1.3：",timeEndList3)
+                    // console.log("for循环结束打印1.4：",timeEndList4)
+                    // console.log("for循环结束打印1.5：",timeEndList5)
+                    // console.log("for循环结束打印2.1：",timeEndList6)
+                    // console.log("for循环结束打印3.1：",timeEndList7)
 
     },
 
 
+
 //------------------------------------------------------------------------------暂时不需要--------------------
-timeCalculate(){
+//计算步骤
+xxxxxx(){
             
             var EquipLevel=JSON.parse(JSON.stringify(this.EquipData.EquipLevel))
             // console.log('Equip数据EquipLevel：',EquipLevel)
@@ -1606,1102 +2856,6 @@ timeCalculate(){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-//-------------------------------------------------------------------------------------
-            //排程计算
-            schedule() {
-                //创建时间获取
-                let date = new Date();
-                let year = date.getFullYear();
-                let month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
-                let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
-                let hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
-                let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
-                let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
-                var createTime = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
-                this.newScheduleRecord.createTime = createTime;
-
-                this.scheduleButton = true
-                setTimeout(() => {
-                        this.scheduleButton = false;
-                    }, 5500);
-                    this.loading=true,
-                    setTimeout(() => {this.loading=false}, 5500);
-            
-                   
-                    if(this.newScheduleRecord.date===null){
-                        this.$message.error('请选择排产日期');
-                        return
-                    }
-                    //判断是否是当日首场排程
-                    else{
-                        axios({
-                                url: "http://localhost:8080/recordDetailListForSchedule",
-                                method: 'GET',
-                                params: {
-                                    date: this.newScheduleRecord.date,
-                                }
-                            }).then(res => {
-                                if (res.data.data.length == 0) {
-                                    this.firstSchedule = 1
-                                    // console.log("进行当日首场生产排程计算", this.firstSchedule)
-                                }//当日首场排程逻辑结束
-                                else {
-                                    this.firstSchedule = 0
-                                    // console.log("第二场及以后排程计算", this.firstSchedule)
-                                }
-
-                            })
-                        }
-                  
-                if (this.newScheduleRecord.productionNumber == '') {
-                    this.$message.error('请输入生产任务单号');
-                    
-                }
-                else if (this.newScheduleRecord.partNo == '') {
-                    this.$message.error('请选择物料');
-                    
-                }
-                else if (this.newScheduleRecord.date == '') {
-                    this.$message.error('请选择排产日期');
-                    
-                }
-                else {
-                    // -----------------------------------------------------------------------------
-                    this.$message('计算中，请稍后……');
-                    this.fullscreenLoading = true;
-                    setTimeout(() => {
-                        this.fullscreenLoading = false;
-                    }, 3000);
-                    
-
-                    axios({
-                    url: "http://localhost:8080/equipmentList",
-                    method: 'GET'
-                }).then(res => {
-                    var Equip = res.data.data;
-
-//------------------------------------------------------------------------------------------Equip读取
-                    // console.log('生产任务单号:', this.newScheduleRecord.productionNumber);
-                    // console.log('订单编号:', this.newScheduleRecord.orderNumber);
-                    // console.log('客户名称:', this.newScheduleRecord.customerName);
-                    // console.log('物料编号:', this.newScheduleRecord.partNo);
-                    // console.log('物料名称:', this.newScheduleRecord.partName);
-                    // console.log('需求数量:', this.newScheduleRecord.number);
-                    // console.log('排产日期:', this.newScheduleRecord.date);
-                    // console.log('创建时间:', this.newScheduleRecord.createTime);
-                    // this.getEquipmentAll();
-                    // console.log("计算前设备数据",Equip) 
-                    //提交表单
-                    axios({
-                        url: 'http://localhost:8080/addRecord',
-                        method: 'POST',
-                        data: this.newScheduleRecord,
-                    }).then(res => {
-
-                        if (res.data.code == 20011) {
-
-                            
-                                
-                                //当日首计划逻辑-------------------------------------------------------------------------------------------------------------
-
-                    var timeEndList1 = [] //3.5级
-                    var timeEndList2 = [] //3.4级
-                    var timeEndList3 = [] //3.3级
-                    var timeEndList4 = [] //3.2级
-                    var timeEndList5 = [] //3.1级
-                    var timeEndList6 = [] //2.1级
-                    var timeEndList7 = [] //1.1级
-
-                    for (var i = 0; i < Equip.length; i++) {
-
-                        if (Equip[i].level === 3.5)//3.5级设备加工时间计算
-                        {
-                            if (Equip[i].processorder === 1) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                  //设备开始加工时间与结束时间
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {
-                                    
-                                })
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-
-                            else if (Equip[i].processorder === 2) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                //比较该设备上一订单结束时间与此订单前设备结束时间谁大
-                                let a = Date.parse(new Date(timeEndList1[0]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[0] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                // let timeStart3 = timeEndList1[0] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                            else if (Equip[i].processorder === 3) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-
-                                 //比较该设备上一订单结束时间与此订单前设备结束时间谁大
-                                let a = Date.parse(new Date(timeEndList1[1]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[1] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                // let timeStart3 = timeEndList1[1] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                            else if (Equip[i].processorder === 4) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList1[2]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[2] : MaxtimeStart3 //3级设备加工开始时间字符串
-                            
-                                // let timeStart3 = timeEndList1[2] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-                            
-                            else if (Equip[i].processorder === 5) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList1[3]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[3] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList1[3] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                            else if (Equip[i].processorder === 6) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList1[4]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[4] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList1[4] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                            else if (Equip[i].processorder === 7) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList1[5]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[5] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList1[5] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                            else if (Equip[i].processorder === 8) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList1[6]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[6] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList1[6] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                            else if (Equip[i].processorder === 9) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList1[7]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[7] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList1[7] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/8                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                            else if (Equip[i].processorder === 10) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList1[8]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[8] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList1[8] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                            else if (Equip[i].processorder === 11) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList1[9]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList1[9] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList1[9] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                timeEndList1.push(timeEnd3)
-                                this.repeat(timeEndList1)
-                            } //if order层
-
-                        }
-                       
-                        else if (Equip[i].level === 3.4) //3.4级设备加工时间计算
-                        {
-
-                            if (Equip[i].processorder === 1) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                  //设备开始加工时间与结束时间
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {
-                                    
-                                })
-                                
-                                timeEndList2.push(timeEnd3)
-                                this.repeat(timeEndList2)
-                                
-                                
-                            } //if order层
-
-
-                            else if (Equip[i].processorder === 2) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList2[0]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList2[0] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList2[0] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-        
-                                timeEndList2.push(timeEnd3)
-                                this.repeat(timeEndList2)
-                                
-                            } //if order层
-
-                        }
-
-                        else if (Equip[i].level === 3.3) //3.3级设备加工时间计算
-                        {
-
-                            if (Equip[i].processorder === 1) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                 //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                  //设备开始加工时间与结束时间
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {
-                                    
-                                })
-                                
-                                timeEndList3.push(timeEnd3)
-                                this.repeat(timeEndList3)
-                                
-                                
-                            } //if order层
-
-
-                            else if (Equip[i].processorder === 2) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList3[0]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList3[0] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList3[0] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList3.push(timeEnd3)
-                                this.repeat(timeEndList3)
-                                
-                            } //if order层
-
-                        }
-
-                        else if (Equip[i].level === 3.2) //3.2级设备加工时间计算
-                        {
-                            if (Equip[i].processorder === 1) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/4                 //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                  //设备开始加工时间与结束时间
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {
-                                    
-                                })
-                                
-                                timeEndList4.push(timeEnd3)
-                                this.repeat(timeEndList4)
-                                
-                                
-                            } //if order层
-
-
-                            else if (Equip[i].processorder === 2) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList4[0]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList4[0] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList4[0] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList4.push(timeEnd3)
-                                this.repeat(timeEndList4)
-                                
-                            } //if order层
-                        }
-
-                        else if (Equip[i].level === 3.1) //3.1级设备加工时间计算
-                        {
-
-                            if (Equip[i].processorder === 1) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let timeStart3 =(this.firstSchedule===1) ? timeDate + ' ' + '08:30:00' : Equip[i].endtime //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                 //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                  //设备开始加工时间与结束时间
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {
-                                    
-                                })
-                                
-                                timeEndList5.push(timeEnd3)
-                                this.repeat(timeEndList5)
-                                
-                                
-                            } //if order层
-
-
-                            else if (Equip[i].processorder === 2) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList5[0]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[0] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList5[0] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList5.push(timeEnd3)
-                                this.repeat(timeEndList5)
-                                
-                            } //if order层
-
-                            else if (Equip[i].processorder === 3) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList5[1]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[1] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList5[1] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList5.push(timeEnd3)
-                                this.repeat(timeEndList5)
-                                
-                            } //if order层
-                            else if (Equip[i].processorder === 4) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList5[2]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[2] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList5[2] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList5.push(timeEnd3)
-                                this.repeat(timeEndList5)
-                                
-                            } //if order层
-                            else if (Equip[i].processorder === 5) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList5[3]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[3] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList5[3] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList5.push(timeEnd3)
-                                this.repeat(timeEndList5)
-                                
-                            } //if order层
-                            else if (Equip[i].processorder === 6) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList5[4]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[4] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList5[4] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList5.push(timeEnd3)
-                                this.repeat(timeEndList5)
-                                
-                            } //if order层
-                            else if (Equip[i].processorder === 7) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList5[5]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[5] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList5[5] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/5                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList5.push(timeEnd3)
-                                this.repeat(timeEndList5)
-                                
-                            } //if order层
-                            else if (Equip[i].processorder === 8) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList5[6]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList5[6] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList5[6] //3级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList5.push(timeEnd3)
-                                this.repeat(timeEndList5)
-                                
-                            } //if order层
-
-                        }
-
-                        else if (Equip[i].level === 2.1) //2.1级设备加工时间计算
-                        {
-
-                            if (Equip[i].processorder === 1) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-
-                                //时间比较3.1、3.2
-                                let compareArr=[Date.parse(new Date(timeEndList4[timeEndList4.length-1])),Date.parse(new Date(timeEndList5[timeEndList5.length-1]))]
-                                
-                                // console.log("时间最大值",this.timeCalculate(Math.max.apply(null,compareArr)))
-                                let a = Math.max.apply(null,compareArr)
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? this.timeCalculate(Math.max.apply(null,compareArr)) : MaxtimeStart3 //3级设备加工开始时间字符串
-
-                                
-                                // let timeStart3 =(this.firstSchedule===1) ? this.timeCalculate(Math.max.apply(null,compareArr)) : Equip[i].endtime
-                                // let timeStart3 = this.timeCalculate(Math.max.apply(null,compareArr)) //2级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//2级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //2级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                  //设备开始加工时间与结束时间
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {
-                                    
-                                })
-                                
-                                timeEndList6.push(timeEnd3)
-                                this.repeat(timeEndList6)
-                                
-                                
-                            } //if order层
-
-                        }
-
-                        else if (Equip[i].level === 1.1) //1.1级设备加工时间计算
-                        {
-
-                            if (Equip[i].processorder === 1) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-
-                                //时间比较3.1、3.2、3.3、2.1
-                                let compareArr=[Date.parse(new Date(timeEndList1[timeEndList1.length-1])),Date.parse(new Date(timeEndList2[timeEndList2.length-1])),Date.parse(new Date(timeEndList3[timeEndList3.length-1])),Date.parse(new Date(timeEndList6[timeEndList6.length-1]))]
-                                
-                                // console.log("时间最大值",this.timeCalculate(Math.max.apply(null,compareArr)))
-
-                                let a = Math.max.apply(null,compareArr)
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? this.timeCalculate(Math.max.apply(null,compareArr)) : MaxtimeStart3 //3级设备加工开始时间字符串
-
-
-                                // let timeStart3 = this.timeCalculate(Math.max.apply(null,compareArr)) //1级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//1级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/3                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //1级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                  //设备开始加工时间与结束时间
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {
-                                    
-                                })
-                                
-                                timeEndList7.push(timeEnd3)
-                                this.repeat(timeEndList7)
-                                
-                                
-                            } //if order层
-
-                            else if (Equip[i].processorder === 2) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList7[0]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList7[0] : MaxtimeStart3 //3级设备加工开始时间字符串
-                                
-                                // let timeStart3 = timeEndList7[0] //1级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number                   //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList7.push(timeEnd3)
-                                this.repeat(timeEndList7)
-                                
-                            } //if order层
-
-                            else if (Equip[i].processorder === 3) {
-                                let timeDate = this.newScheduleRecord.date //获取排程日期
-                                let a = Date.parse(new Date(timeEndList7[1]))
-                                let b= Date.parse(new Date(Equip[i].endtime))
-                                let c= (a>b) ? a : b
-                                let  MaxtimeStart3= this.timeCalculate(c)
-                                let timeStart3 =(this.firstSchedule===1) ? timeEndList7[1] : MaxtimeStart3 //3级设备加工开始时间字符串
-            
-                                // let timeStart3 = timeEndList7[1] //1级设备加工开始时间字符串
-                                let timeStampStart3 = Date.parse(new Date(timeStart3))//3级设备加工时间字符串更改为时间戳
-                                //时间戳加工时间计算
-                                let timeProcess3 = 1000 * Equip[i].ct * this.newScheduleRecord.number/2                    //毫秒，每台设备不一致
-                                let timeStampEnd3 = timeStampStart3 + timeProcess3       //3级设备加工结束时间时间戳
-                                let timeEnd3 = this.timeCalculate(timeStampEnd3) //调用函数时间戳转化为字符串
-                                let equipmentUpadateList={}
-                                equipmentUpadateList.equipid = Equip[i].equipid
-                                equipmentUpadateList.starttime = timeStart3
-                                equipmentUpadateList.endtime = timeEnd3
-                                axios({
-                                    url: 'http://localhost:8080/equipmentListUpdate',
-                                    method: 'POST',
-                                    data: equipmentUpadateList,
-                                }).then(res => {    
-                                }) 
-                                
-                                timeEndList7.push(timeEnd3)
-                                this.repeat(timeEndList7)
-                                
-                            } //if order层
-
-                        }
-
-                    } //for End---------------------------------------------------------------
-                    // console.log("for循环结束打印3.5：",timeEndList1)
-                    // console.log("for循环结束打印3.4：",timeEndList2)
-                    // console.log("for循环结束打印3.3：",timeEndList3)
-                    // console.log("for循环结束打印3.2：",timeEndList4)
-                    // console.log("for循环结束打印3.1：",timeEndList5)
-                    // console.log("for循环结束打印2.1：",timeEndList6)
-                    // console.log("for循环结束打印1.1：",timeEndList7)
-                   
-
-
-                    //-----------------异步数据传输太快导致bug已解决
-
-                    setTimeout( ()=>{this.recordDetailUpdate()} ,4000 )
-
-                        }  //if (res.data.code == 20011) End
-
-
-
-
-
-
-                        //----------------------------------------------------------首计划逻辑
-
-                        else {
-                            this.$message.error('该生产任务单号已经存在！请重新输入！');
-                        }
-                    }).finally(() => {
-                            this.getRecord();
-                            
-                        });//finally
-
-                    })//------------------------------------------------------------------------------------------Equip读取
-                   
-
-
-
-                } //else
-                 // ----------------------------------------------------------------------------- 
-            
-         
-
-            
-            },
-           
-            //与schedule配合使用
-        recordDetailUpdate(){
-            axios({
-                    url: "http://localhost:8080/equipmentList",
-                    method: 'GET'
-                }).then(res => {
-                    var Equip2 = res.data.data;
-                    // console.log("计算后数据2",Equip2)
-
-                    for (var j = 0; j < Equip2.length; j++) {
-                        let recordDetail = {}
-                        recordDetail.productionNumber = this.newScheduleRecord.productionNumber
-                        recordDetail.equipid = Equip2[j].equipid
-                        recordDetail.equipname = Equip2[j].equipname
-                        recordDetail.number = this.newScheduleRecord.number
-                        recordDetail.starttime = Equip2[j].starttime
-                        recordDetail.endtime = Equip2[j].endtime
-                        recordDetail.model = this.newScheduleRecord.partName
-                        axios({
-                            url: 'http://localhost:8080/addRecordDetail',
-                            method: 'POST',
-                            data: recordDetail,
-                        }).then(res => {
-                        })
-                    }
-                }).finally(() => {
-                    // this.getRecordDetailAll();
-                    this.currentPage=1
-                    axios({
-                    url: "http://localhost:8080//recordDetailList",
-                    method: 'GET',
-                    params:{
-                        current:this.currentPage,
-                        productionNumber:this.newScheduleRecord.productionNumber
-                    }
-                }).then(res => {
-                    this.recordDetailDataList = res.data.data;
-                    this.pageTotal=res.data.total
-                })
-                  
-                    // this.loading=true,
-                    // setTimeout(() => {this.loading=false}, 2500);
-
-                })//finally
-        },
 
 
 

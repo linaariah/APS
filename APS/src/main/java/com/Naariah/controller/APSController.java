@@ -94,12 +94,23 @@ public class APSController {
     private EquipmentDao equipmentDao;
     @GetMapping("/getEquipment")
     public Result getEquipment(){
-        QueryWrapper<Equipment> queryWrapper = new QueryWrapper<Equipment>();
+        QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc("equipid");
         List<Equipment> equipmentList = equipmentDao.selectList(queryWrapper);
         Integer code = equipmentList != null ? Code.GET_OK : Code.GET_ERR;
         String msg = equipmentList != null ? "" : "数据查询失败，请重试！";
         return  new Result(code, equipmentList,msg);
+
+    };
+
+    @GetMapping("/getEquipmentTime")
+    public List<Equipment> getEquipmentTime(@RequestParam String equipid){
+        QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("equipid",equipid);
+        List<Equipment> equipmentList = equipmentDao.selectList(queryWrapper);
+        return equipmentList;
+
+
 
     };
 
@@ -111,6 +122,10 @@ public class APSController {
         updateWrapper.set("endtime",equipment.getEndtime());
         equipmentDao.update(null,updateWrapper);
     };
+
+
+
+
 
 
     //设备信息Bom表编辑-------------------------------------------------------------------
