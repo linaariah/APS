@@ -414,7 +414,7 @@
             <el-button type="primary" plain icon="el-icon-search" @click="searchEquipmentBom">搜索</el-button>
         </div>
         
-            <el-table :data="equipmentBomDataList" height="450" stripe fit @current-change="handleCurrentEquipmentBomChange" highlight-current-row ref="singleTableEquipmentBom" v-loading="loadingequipmentBom">
+            <el-table :data="equipmentBomDataList" height="450" stripe fit @current-change="handleCurrentEquipmentBomChange" highlight-current-row ref="singleTableEquipmentBom" v-loading="loadingEquipmentBom">
                 <el-table-column prop="model" label="产品型号" ></el-table-column>
                 <el-table-column prop="equipid" label="设备编号"></el-table-column>
                 <el-table-column prop="equipname" label="设备名称" width="220px"></el-table-column>
@@ -983,6 +983,7 @@
 
             //打开设备Bom表
             openEquipmentBom() { 
+                this.loadingEquipmentBom=true
             this.dialogEquipmentVisible = true
             //清空input
                 this.resetEquipmentBom()
