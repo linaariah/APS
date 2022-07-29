@@ -414,7 +414,7 @@
             <el-button type="primary" plain icon="el-icon-search" @click="searchEquipmentBom">搜索</el-button>
         </div>
         
-            <el-table :data="equipmentBomDataList" height="450" stripe fit @current-change="handleCurrentEquipmentBomChange" highlight-current-row ref="singleTableEquipmentBom">
+            <el-table :data="equipmentBomDataList" height="450" stripe fit @current-change="handleCurrentEquipmentBomChange" highlight-current-row ref="singleTableEquipmentBom" v-loading="loadingequipmentBom">
                 <el-table-column prop="model" label="产品型号" ></el-table-column>
                 <el-table-column prop="equipid" label="设备编号"></el-table-column>
                 <el-table-column prop="equipname" label="设备名称" width="220px"></el-table-column>
@@ -532,6 +532,7 @@
                 processorder:'',
                 part:'',
             },
+            loadingEquipmentBom:true,
 
             part: [{
                   value: '转子轴',
@@ -999,6 +1000,7 @@
                     method: 'GET'
                 }).then(res => {
                     this.equipmentBomDataList = res.data.data;
+                    this.loadingEquipmentBom=false
                 })
             },           
 
@@ -1109,6 +1111,7 @@
                     this.$message.error('请输入该等级该零件序号的加工次序');
                 }
                 else{
+                    this.loadingEquipmentBom=true
                     var obj ={}
                     obj.model=this.newEquipmentBom.model
                     axios({
@@ -1137,6 +1140,7 @@
                     }).then(res => {
                         this.$message.success('该设备信息Bom数据添加成功！');
                         this.searchEquipmentBom2()
+                        
                     })
 
                     //添加model
@@ -1151,6 +1155,7 @@
                         }
                         else{
                             this.$message.error('当前设备信息Bom数据已存在请重新输入')
+                            this.loadingEquipmentBom=false
                             return
                         }
                     })
@@ -1159,6 +1164,7 @@
 
             //搜索设备Bom
             searchEquipmentBom(){
+                this.loadingEquipmentBom=true
                 
                 axios({
                         url: 'http://localhost:8080/searchEquipmentBom',
@@ -1188,10 +1194,12 @@
                         // console.log(this.newEquipmentBom.processorder)
                         // console.log(this.newEquipmentBom.part)
                         this.equipmentBomDataList = res.data
+                        this.loadingEquipmentBom=false
                     })
 
             },
             searchEquipmentBom2(){
+
                 
                 axios({
                         url: 'http://localhost:8080/searchEquipmentBom2',
@@ -1211,6 +1219,7 @@
                         
                     }).then(res => {
                         this.equipmentBomDataList = res.data
+                        this.loadingEquipmentBom=false
                     })
 
             },
@@ -1237,10 +1246,12 @@
             },
             //删除设备Bom
             deleteEquipmentBom(){
+                this.loadingEquipmentBom=true
                 this.visible = false
                 if(this.newEquipmentBom.model == ''||this.newEquipmentBom.equipid==''||this.newEquipmentBom.equipname==''||this.newEquipmentBom.processname==''||this.newEquipmentBom.equipnumber==''||this.newEquipmentBom.ct==''||this.newEquipmentBom.level==''||this.newEquipmentBom.levelnumber==''||this.newEquipmentBom.processorder==''||this.newEquipmentBom.part=='')
                 {
                     this.$message.warning('请选择要删除的设备信息Bom数据！'); 
+                    this.loadingEquipmentBom=false
                 }
                 else{
 
