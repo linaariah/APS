@@ -51,7 +51,9 @@ public class APSController {
     //生产排程查询记录
     @GetMapping("/getRecord")
     public Result getRecordAll(){
-        List<Record> recordList = recordDao.selectList(null);
+        QueryWrapper <Record> wrapper = new QueryWrapper<>();
+        wrapper.orderByDesc("production_number");
+        List<Record> recordList = recordDao.selectList(wrapper);
         Integer code = recordList != null ? Code.GET_OK : Code.GET_ERR;
         String msg =recordList != null ? "" : "数据查询失败，请重试！";
         return  new Result(code,recordList,msg);

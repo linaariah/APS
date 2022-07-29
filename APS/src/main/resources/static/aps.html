@@ -361,6 +361,11 @@
 
         <!--EquipmentBom设备信息查询弹出框-------------------------------------------------->
         <el-dialog title="设备信息Bom表" :visible.sync="dialogEquipmentVisible" custom-class="dialogEquipmentVisible">
+            <div style='margin-bottom: 5px;' @click="openInfo">
+            <el-link ><i class="el-icon-info"></i>设备信息Bom表图示说明</el-link>
+        </div>
+        
+    
         
             <span style='color: #909399;font-weight:bolder;'>产品型号：</span>
             <el-input placeholder="请输入产品型号" style='width:170px;margin:0px 10px 10px 0px;' v-model.trim="newEquipmentBom.model">
@@ -462,6 +467,15 @@
                 <el-button type="success" @click="EquipmentChooseConfirm">确 认</el-button>
             </span>
 
+        </el-dialog>
+
+
+        <!--等级info说明弹出框----------------------------------------------------------->
+        <el-dialog title="设备信息Bom表图示说明" :visible.sync="dialogInfoVisible">
+            <!-- <el-image :src="./img/info.png"></el-image> -->
+            <img src="./img/info.png">
+
+           
         </el-dialog>
 
 
@@ -567,6 +581,7 @@
             equipmentDataList: [],//设备信息查询
             equipmentBomDataList: [],//设备信息Bom表查询
             visible: false,//popConfirm气泡
+            dialogInfoVisible:false,//设备信息Bom表说明
 
             scheduleButton:false,//排程按钮加载状态
 
@@ -1276,6 +1291,7 @@
                     }).then(res => {
                         this.$message.success('该设备信息Bom数据删除成功！');
                         this.getEquipmentBom();
+                        this.resetEquipmentBom()
                         
                         //搜索model是否存在
                         axios({
@@ -1322,7 +1338,9 @@
 
             },
 
-
+            openInfo(){
+                this.dialogInfoVisible=true
+            },
 
 
             //-----------------------calculate
@@ -1420,7 +1438,8 @@
                             }
                              else {
                             this.$message.error('该生产任务单号已经存在！请重新输入！');
-                            this.scheduleButton = true
+                            this.scheduleButton = false
+                            this.loadingRecordDetail=false
                             }
                     }).finally(() => {
                             this.getRecord();
@@ -1445,9 +1464,10 @@
 
                     //执行结束刷新recordDetail
                     if(i==EquipmentBomData.length-1){
-                        this.getRecordDetail();
-                        this.scheduleButton = false
+                        // this.getRecordDetail();
                         
+
+                                    setTimeout(() => {
                 this.currentPage=1
                 axios({
                     url: "http://localhost:8080/searchRecordDetail",
@@ -1467,7 +1487,13 @@
                     this.recordDetailDataList = res.data.data;
                     this.pageTotal=res.data.total
                     this.loadingRecordDetail=false
+                    this.scheduleButton = false
                 })
+
+                                    
+                    }, 200);
+                        
+               
                     }
 
                    await axios({
