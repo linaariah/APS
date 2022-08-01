@@ -2313,7 +2313,7 @@
                                                 let  MaxtimeStart= this.timeTransform(c)
                                                 let timeStart =(this.firstSchedule===1) ? timeEndList5[1] : MaxtimeStart //1级设备加工开始时间字符串
                                                 let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
-                                                //时间戳加工时间计算
+                                                //转化时间戳后加工时间计算
                                                 let timeProcess = 1000 *EquipmentBomData[i].ct * this.newScheduleRecord.number / EquipmentBomData[i].equipnumber     
                                                 let timeStampEnd = timeStampStart + timeProcess      //1级设备加工结束时间时间戳
                                                 let timeEnd = this.timeTransform(timeStampEnd) //调用函数时间戳转化为字符串
