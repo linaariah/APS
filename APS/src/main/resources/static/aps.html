@@ -277,8 +277,7 @@
                                 <div style='padding:10px 10px 10px 10px'>
                                     <span style='color: #909399;font-weight:bolder;'>生产排程甘特图：</span>
                                     <div id="main" style="width: 1100px;height:400px;">
-        
-        
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -472,8 +471,7 @@
 
         <!--等级info说明弹出框----------------------------------------------------------->
         <el-dialog title="电机类产品设备信息Bom表图示说明" :visible.sync="dialogInfoVisible">
-            <!-- <el-image :src="./img/info.png"></el-image> -->
-            <el-image src="./img/info.png" :fit="contain"></el-image>
+            <el-image src="./img/info.png" ></el-image>
 
            
         </el-dialog>
@@ -612,6 +610,39 @@
         //     this.getRecordDetailAll();
         // setTimeout(() => {this.loading=false}, 1500);
 
+        },
+
+        mounted(){
+            
+                                            // 基于准备好的dom，初始化echarts实例
+                                            var myChart = echarts.init(document.getElementById('main'));
+                                      
+                                            // 指定图表的配置项和数据
+                                            var option = {
+                                              title: {
+                                                text: 'ECharts 入门示例'
+                                              },
+                                              tooltip: {},
+                                              legend: {
+                                                data: ['销量']
+                                              },
+                                              xAxis: {
+                                                data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+                                              },
+                                              yAxis: {},
+                                              series: [
+                                                {
+                                                  name: '销量',
+                                                  type: 'bar',
+                                                  data: [5, 20, 36, 10, 10, 20]
+                                                }
+                                              ]
+                                            };
+                                      
+                                            // 使用刚指定的配置项和数据显示图表。
+                                            myChart.setOption(option);
+                                         
+        
         },
        
         
@@ -1291,8 +1322,7 @@
                     }).then(res => {
                         this.$message.success('该设备信息Bom数据删除成功！');
                         this.getEquipmentBom();
-                        this.resetEquipmentBom()
-                        
+                                       
                         //搜索model是否存在
                         axios({
                         url: 'http://localhost:8080/searchEquipmentBom3',
