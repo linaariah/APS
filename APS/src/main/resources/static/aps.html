@@ -276,7 +276,7 @@
                             <div style='padding:10px'>
                                 <div style='padding:10px 10px 10px 10px'>
                                     <span style='color: #909399;font-weight:bolder;'>生产排程甘特图：</span>
-                                    <div id="main" style="width: 100%;height:900px;">
+                                    <div id="main" style="width: 100%;height:2000px;">
                                         
                                     </div>
                                 </div>
@@ -605,6 +605,7 @@
             this.dateFormat();
             this.getRecordDetail();
             
+            
         //     this.getEquipmentAll();
         //     this.getPartAll();
         //     this.getRecordDetailAll();
@@ -613,111 +614,118 @@
         },
 
         mounted(){
-            
-        // 基于准备好的dom，初始化echarts实例
-        var myChart = echarts.init(document.getElementById('main'));
-        window.onresize = function() {
-        myChart.resize();
-        };
-                                      
-                                            // 指定图表的配置项和数据
-                                            var option = {
-                                                tooltip: {
-    trigger: 'axis',
-    axisPointer: {
-      // Use axis to trigger tooltip
-      type: 'shadow' // 'shadow' as default; can also be 'line' or 'shadow'
-    }
-  },
-  legend: {},
-  grid: {
-    left: '3%',
-    right: '4%',
-    bottom: '3%',
-    containLabel: true
-  },
-  xAxis: {
-    type: 'value'
-  },
-  yAxis: {
-    type: 'category',
-    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  },
-  series: [
-    {
-      name: 'Direct',
-      type: 'bar',
-      stack: 'total',
-      label: {
-        show: true
-      },
-      emphasis: {
-        focus: 'series'
-      },
-      data: [320, 302, 301, 334, 390, 330, 320]
-    },
-    {
-      name: 'Mail Ad',
-      type: 'bar',
-      stack: 'total',
-      label: {
-        show: true
-      },
-      emphasis: {
-        focus: 'series'
-      },
-      data: [120, 132, 101, 134, 90, 230, 210]
-    },
-    {
-      name: 'Affiliate Ad',
-      type: 'bar',
-      stack: 'total',
-      label: {
-        show: true
-      },
-      emphasis: {
-        focus: 'series'
-      },
-      data: [220, 182, 191, 234, 290, 330, 310]
-    },
-    {
-      name: 'Video Ad',
-      type: 'bar',
-      stack: 'total',
-      label: {
-        show: true
-      },
-      emphasis: {
-        focus: 'series'
-      },
-      data: [150, 212, 201, 154, 190, 330, 410]
-    },
-    {
-      name: 'Search Engine',
-      type: 'bar',
-      stack: 'total',
-      label: {
-        show: true
-      },
-      emphasis: {
-        focus: 'series'
-      },
-      data: [820, 832, 901, 934, 1290, 1330, 1320]
-    }
-  ]
-                                            };
-                                      
-                                            // 使用刚指定的配置项和数据显示图表。
-                                            myChart.setOption(option);
-                                         
-        
+            // this.showCharts();
         },
+
        
         
 
 
         //所有的函数方法
         methods: { 
+
+            //甘特图
+    showCharts(){
+        var equip=[]
+        var startTime=[]
+        var endTime=[]
+        axios({
+                        url: 'http://localhost:8080/recordDetailListForCharts',
+                        method: 'GET',
+                        params:{
+                            
+                            productionNumber:this.newScheduleRecord.productionNumber
+                        },
+                        
+                    }).then(res => {
+                        // console.log(res.data.data)
+                        var result =res.data.data
+                        for(i=0;i<result.length;i++){
+                            let a = result[i].equipid
+                            let b = result[i].equipname
+                            let c = a + '\xa0' +b
+                            equip.push(c)
+                            startTime.push(result[i].starttime)
+                            endTime.push(result[i].endtime)
+
+                        }
+                        window.aa= equip
+                        window.bb=startTime
+                        window.cc=endTime
+                        setTimeout(() => {this.showCharts2()}, 1000);
+
+                    })
+
+                    
+                   
+
+            },
+
+            showCharts2(){
+                var myChart = echarts.init(document.getElementById('main'));
+        
+        // console.log(aa)
+        // console.log(bb)
+        // console.log(cc)
+
+   // 指定图表的配置项和数据
+    var option = {
+    backgroundColor: "#fff",
+    
+    // legend: {
+    //     y: 'bottom',
+    //     data: ['Y80','Y90']
+    // },
+    grid: {
+        containLabel: true,
+        left: 20
+    },
+    xAxis: {
+        type: 'time',
+        position:'top'
+    },
+    yAxis: {
+       data:aa
+    },
+    tooltip: {
+        trigger: 'axis',
+    },
+    series: [
+    {
+            name: '结束',
+            type: 'bar',
+            stack: 'test1',
+            zlevel: -1,
+            itemStyle: {
+                normal: {
+                    borderColor: "#fff",
+                }
+            },
+            data:cc
+        
+        },
+    {
+            name: '开始',
+            type: 'bar',
+            stack: 'test1',
+            itemStyle: {
+                normal: {
+                    color: '#fff',
+                    borderColor: "#fff",
+                    borderWidth: 2
+                }
+            },
+            zlevel: -1,
+            data: bb
+        }
+    
+       
+        
+        
+    ]
+};
+myChart.setOption(option);
+            },
 
             //返回功能
             myReturn() {
@@ -882,6 +890,8 @@
                     this.recordDetailDataList = res.data.data;
                     this.pageTotal=res.data.total
                     this.loadingRecordDetail=false
+                    //--------
+                    this.showCharts();
                     
                 })
                

@@ -374,6 +374,16 @@ public class APSController {
         return  new Result(code,recordDetail,msg);
         };
 
+    @GetMapping("/recordDetailListForCharts")
+    public Result getRecordDetailAllForCharts(@RequestParam String productionNumber){
+        QueryWrapper<RecordDetail> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("production_number",productionNumber);
+        List<RecordDetail> recordDetail = recordDetailDao.selectList(queryWrapper);
+        Integer code = recordDetail != null ? Code.GET_OK : Code.GET_ERR;
+        String msg =recordDetail != null ? "" : "数据查询失败，请重试！";
+        return  new Result(code,recordDetail,msg);
+    };
+
 
 
 
