@@ -276,7 +276,7 @@
                             <div style='padding:10px'>
                                 <div style='padding:10px 10px 10px 10px'>
                                     <span style='color: #909399;font-weight:bolder;'>生产排程甘特图：</span>
-                                    <div id="main" style="width: 100%;height:2000px;">
+                                    <div id="main" style="width: 100%;height:700px;">
                                         
                                     </div>
                                 </div>
@@ -319,7 +319,7 @@
         <!-- <el-table-column prop="partName" label="物料名称" width="160"></el-table-column> -->
         <el-table-column prop="number" label="需求数量"></el-table-column>
         <el-table-column prop="date" label="排产日期"></el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="160"></el-table-column>
+        <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
     </el-table>
     <span slot="footer" class="dialog-footer">
         
@@ -663,8 +663,10 @@
 
             showCharts2(){
                 var myChart = echarts.init(document.getElementById('main'));
-                var chartsTitle = '生产任务单号：'+this.newScheduleRecord.productionNumber
-        
+                var chartsTitle = '日期：'+this.newScheduleRecord.date+'\xa0'+'\xa0'+'\xa0'+'\xa0'+'生产任务单号：'+this.newScheduleRecord.productionNumber
+                let timeDate = this.newScheduleRecord.date //获取排程日期
+                let timeStart =timeDate + ' ' + '08:30:00' //加工开始时间字符串
+                let timeStampStart = Date.parse(new Date(timeStart))//1级设备加工时间字符串更改为时间戳
         // console.log(aa)
         // console.log(bb)
         // console.log(cc)
@@ -678,22 +680,35 @@
             fontWeight:'bold',
             fontSize:15
         },
-        left:'center'
+        left:'center',
+        top:10
     },
     
-    // legend: {
-    //     y: 'bottom',
-    //     data: ['Y80','Y90']
-    // },
+
     grid: {
+        show:true,
         containLabel: true,
         left: 20,
-        top:20
+        top:80
     },
     xAxis: {
         type: 'time',
         position:'top',
-        interval:0.5*60*60*1000
+        interval:0.5*60*60*1000,
+        min:timeStampStart,
+        axisLine:{
+            show:true,
+        },
+        axisTick:{
+            show:true,
+           
+        },
+        splitLine: {
+                show: true,
+                lineStyle:{
+                    type:'dashed'
+                }
+            }
     },
     yAxis: {
        data:aa,
@@ -701,14 +716,36 @@
     },
     tooltip: {
         trigger: 'axis',
+        axisPointer:{
+            show:true
+        },
+        formatter: '{b}<br/>{a1}{c1}<br/>{a0}{c0}'
     },
-    dataZoom:{
+    
+    dataZoom:[
+    {
+    fiterMode: 'empty',
     type:'slider',
-    xAxisIndex: 0 
+    xAxisIndex: 0 ,
+    top:40,
+    start:0,
+    end:100,
     },
+    {
+    fiterMode: 'empty',
+    type:'slider',
+    yAxisIndex: 0 ,
+    right:120,
+    start:0,
+    end:20,
+    zommLock:true,
+    brushSelect:false,
+    showDetail:false
+    }
+    ],
     series: [
     {
-            name: '结束',
+            name: '结束运行时间:',
             type: 'bar',
             stack: 'test1',
             zlevel: -1,
@@ -721,7 +758,7 @@
         
         },
     {
-            name: '开始',
+            name: '开始运行时间:',
             type: 'bar',
             stack: 'test1',
             itemStyle: {
