@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6cbc8024-4fdb-40f2-adb3-cd2326dc0420" name="变更" comment="mac 08.09 first commit" />
+    <list default="true" id="6cbc8024-4fdb-40f2-adb3-cd2326dc0420" name="变更" comment="mac 08.09 first commit">
+      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/aps.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/aps.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

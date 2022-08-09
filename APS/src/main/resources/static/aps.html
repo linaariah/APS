@@ -663,6 +663,7 @@
 
             showCharts2(){
                 var myChart = echarts.init(document.getElementById('main'));
+                var chartsTitle = '生产任务单号：'+this.newScheduleRecord.productionNumber
         
         // console.log(aa)
         // console.log(bb)
@@ -671,6 +672,14 @@
    // 指定图表的配置项和数据
     var option = {
     backgroundColor: "#fff",
+    title:{
+        text:chartsTitle,
+        textStyle:{
+            fontWeight:'bold',
+            fontSize:15
+        },
+        left:'center'
+    },
     
     // legend: {
     //     y: 'bottom',
@@ -678,17 +687,24 @@
     // },
     grid: {
         containLabel: true,
-        left: 20
+        left: 20,
+        top:20
     },
     xAxis: {
         type: 'time',
-        position:'top'
+        position:'top',
+        interval:0.5*60*60*1000
     },
     yAxis: {
-       data:aa
+       data:aa,
+       inverse:true
     },
     tooltip: {
         trigger: 'axis',
+    },
+    dataZoom:{
+    type:'slider',
+    xAxisIndex: 0 
     },
     series: [
     {
@@ -1596,6 +1612,7 @@ myChart.setOption(option);
                     this.pageTotal=res.data.total
                     this.loadingRecordDetail=false
                     this.scheduleButton = false
+                    this.showCharts()
                 })
 
                                     
