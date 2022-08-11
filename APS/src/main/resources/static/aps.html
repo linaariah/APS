@@ -392,7 +392,7 @@
     
         <div style="margin-top: 25px;">
             <span style='color: #909399;font-weight:bolder;'>节拍时间(/s)：</span>
-            <el-popover ref="popover" placement="top" width="190" trigger="focus" content="请输入节拍时间，如5、15……"></el-popover>
+            <el-popover ref="popover" placement="top" width="200" trigger="focus" content="请输入节拍时间，如5、15……"></el-popover>
             <el-input style='width:60px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.ct " oninput ="value=value.replace(/[^\d]/g,'')" v-popover:popover></el-input>
         
       
@@ -409,7 +409,7 @@
             </el-input>
         
             <span style='color: #909399;font-weight:bolder;'>该等级该零件序号的加工次序：</span>
-            <el-popover ref="popover2" placement="top" width="180" trigger="focus" content="请输入加工次序，如1、2……"></el-popover>
+            <el-popover ref="popover2" placement="top" width="190" trigger="focus" content="请输入加工次序，如1、2……"></el-popover>
             <el-input style='width:40px;margin:0px 10px 10px 0px;' v-model="newEquipmentBom.processorder" oninput ="value=value.replace(/[^\d]/g,'')" v-popover:popover2>
             </el-input>
         
